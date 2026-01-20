@@ -1,9 +1,8 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
   <title>Demand Planner</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
@@ -12,10 +11,10 @@
   <h1>Demand Planning Tool</h1>
 
   <div class="card">
-    <label>Sales File (Excel / CSV)</label>
+    <label>Sales File</label>
     <input type="file" id="salesFile">
 
-    <label>Stock File (Excel / CSV)</label>
+    <label>Stock File</label>
     <input type="file" id="stockFile">
 
     <div class="inputs">
@@ -24,7 +23,7 @@
         <input type="number" id="salesDays" value="30">
       </div>
       <div>
-        <label>Target Stock Cover</label>
+        <label>Target SC</label>
         <input type="number" id="targetSC" value="45">
       </div>
     </div>
@@ -32,37 +31,44 @@
     <button onclick="processFiles()">Generate Reports</button>
   </div>
 
-  <!-- DEMAND REPORT -->
+  <!-- SC BAND SUMMARY -->
+  <div class="card">
+    <h2>📊 SC Band Summary</h2>
+    <table id="scSummary">
+      <tr><th>SC Band</th><th>Styles</th></tr>
+      <tr><td>0–30</td><td id="b0"></td></tr>
+      <tr><td>30–60</td><td id="b30"></td></tr>
+      <tr><td>60–120</td><td id="b60"></td></tr>
+      <tr><td>120+</td><td id="b120"></td></tr>
+    </table>
+  </div>
+
+  <!-- SEARCH -->
+  <input id="search" placeholder="Search Style..." onkeyup="filterTables()">
+
+  <!-- ACTIONS -->
+  <button onclick="exportExcel()">📤 Export to Excel</button>
+
+  <!-- DEMAND -->
   <div class="card">
     <h2>📊 Demand Report</h2>
     <table id="demandTable">
       <thead>
         <tr>
-          <th></th>
-          <th>Style</th>
-          <th>Sales</th>
-          <th>Stock</th>
-          <th>DRR</th>
-          <th>SC</th>
-          <th>Demand</th>
+          <th></th><th>Style</th><th>Sales</th><th>Stock</th><th>DRR</th><th>SC</th><th>Demand</th>
         </tr>
       </thead>
       <tbody></tbody>
     </table>
   </div>
 
-  <!-- OVERSTOCK REPORT -->
+  <!-- OVERSTOCK -->
   <div class="card">
     <h2>📦 Overstock Report (SC &gt; 120)</h2>
     <table id="overstockTable">
       <thead>
         <tr>
-          <th></th>
-          <th>Style</th>
-          <th>Sales</th>
-          <th>Stock</th>
-          <th>DRR</th>
-          <th>SC</th>
+          <th></th><th>Style</th><th>Sales</th><th>Stock</th><th>DRR</th><th>SC</th>
         </tr>
       </thead>
       <tbody></tbody>

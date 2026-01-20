@@ -30,8 +30,6 @@ body {
 
 label {
   font-weight: bold;
-  display: block;
-  margin-top: 10px;
 }
 
 input {
@@ -88,32 +86,4 @@ th {
 
 .tab-content.active {
   display: block;
-}
-
-.expand-btn {
-  cursor: pointer;
-  font-weight: bold;
-  color: #1a73e8;
-}
-
-.sub-row {
-  background: #fafafa;
-}
-
-.hidden {
-  display: none;
-}
-
-#search {
-  width: 300px;
-  padding: 10px;
-}
-
-.help-box {
-  background: #eef3ff;
-  border-left: 4px solid #1a73e8;
-  padding: 12px;
-  margin-bottom: 15px;
-  text-align: left;
-  font-size: 14px;
 }

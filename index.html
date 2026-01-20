@@ -40,7 +40,8 @@
   <div class="tabs">
     <button class="tab-btn active" onclick="showTab('demand')">📊 Demand</button>
     <button class="tab-btn" onclick="showTab('overstock')">📦 Overstock</button>
-    <button class="tab-btn" onclick="showTab('size')">📐 Size Analysis</button>
+    <button class="tab-btn" onclick="showTab('sizemix')">📐 Size Mix %</button>
+    <button class="tab-btn" onclick="showTab('sizeanalysis')">📊 Size Analysis</button>
   </div>
 
   <!-- DEMAND -->
@@ -49,7 +50,8 @@
       <table id="demandTable">
         <thead>
           <tr>
-            <th></th><th>Style</th><th>Sales</th><th>Stock</th><th>DRR</th><th>SC</th><th>Demand</th>
+            <th></th><th>Style</th><th>Sales</th><th>Stock</th>
+            <th>DRR</th><th>SC</th><th>Demand</th>
           </tr>
         </thead>
         <tbody></tbody>
@@ -63,7 +65,26 @@
       <table id="overstockTable">
         <thead>
           <tr>
-            <th></th><th>Style</th><th>Sales</th><th>Stock</th><th>DRR</th><th>SC</th>
+            <th></th><th>Style</th><th>Sales</th><th>Stock</th>
+            <th>DRR</th><th>SC</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- SIZE MIX PER STYLE -->
+  <div id="sizemixTab" class="tab-content">
+    <div class="card">
+      <table id="sizeMixTable">
+        <thead>
+          <tr>
+            <th>Style</th>
+            <th>Total Sales</th>
+            <th>Normal % (S–XXL)</th>
+            <th>Plus1 % (3XL–6XL)</th>
+            <th>Plus2 % (7XL–10XL)</th>
           </tr>
         </thead>
         <tbody></tbody>
@@ -72,13 +93,14 @@
   </div>
 
   <!-- SIZE ANALYSIS -->
-  <div id="sizeTab" class="tab-content">
+  <div id="sizeanalysisTab" class="tab-content">
     <div class="card">
-      <h2>Normal vs Plus Size Sales</h2>
+      <h2>Overall Size Sales Distribution</h2>
       <table>
         <tr><th>Category</th><th>Units Sold</th><th>% Share</th></tr>
         <tr><td>Normal (S–XXL)</td><td id="normalSales">0</td><td id="normalPct">0%</td></tr>
-        <tr><td>Plus (3XL–10XL)</td><td id="plusSales">0</td><td id="plusPct">0%</td></tr>
+        <tr><td>Plus1 (3XL–6XL)</td><td id="plus1Sales">0</td><td id="plus1Pct">0%</td></tr>
+        <tr><td>Plus2 (7XL–10XL)</td><td id="plus2Sales">0</td><td id="plus2Pct">0%</td></tr>
       </table>
     </div>
   </div>

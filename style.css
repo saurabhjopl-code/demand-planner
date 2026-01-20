@@ -1,35 +1,33 @@
 body {
   font-family: Arial, sans-serif;
   background: #f4f6f8;
-  margin: 0;
   padding: 20px;
 }
 
 .container {
-  max-width: 1100px;
+  max-width: 1200px;
   margin: auto;
 }
 
-h1 {
-  margin-bottom: 20px;
-}
-
 .card {
-  background: #ffffff;
+  background: #fff;
   padding: 20px;
+  margin-bottom: 25px;
   border-radius: 6px;
-  margin-bottom: 20px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.08);
 }
 
-label {
-  display: block;
-  margin-top: 10px;
-  font-weight: bold;
+h1, h2 {
+  margin-bottom: 15px;
 }
 
-input[type="file"],
-input[type="number"] {
+label {
+  font-weight: bold;
+  margin-top: 10px;
+  display: block;
+}
+
+input {
   width: 100%;
   padding: 8px;
   margin-top: 5px;
@@ -43,32 +41,41 @@ input[type="number"] {
 
 button {
   margin-top: 20px;
-  padding: 12px;
   width: 100%;
+  padding: 12px;
   background: #1a73e8;
   color: white;
   border: none;
-  border-radius: 4px;
   font-size: 16px;
   cursor: pointer;
-}
-
-button:hover {
-  background: #1558b0;
+  border-radius: 4px;
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 15px;
 }
 
 th, td {
   border: 1px solid #ddd;
-  padding: 10px;
+  padding: 8px;
   text-align: center;
 }
 
 th {
   background: #f1f3f4;
+}
+
+.expand-btn {
+  cursor: pointer;
+  font-weight: bold;
+  color: #1a73e8;
+}
+
+.sub-row {
+  background: #fafafa;
+}
+
+.hidden {
+  display: none;
 }

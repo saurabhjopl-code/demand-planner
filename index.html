@@ -1,6 +1,7 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
   <title>Demand Planner</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -10,11 +11,12 @@
 <div class="container">
   <h1>Demand Planning Tool</h1>
 
+  <!-- INPUTS -->
   <div class="card">
-    <label>Sales File</label>
+    <label>Sales File (Excel / CSV)</label>
     <input type="file" id="salesFile">
 
-    <label>Stock File</label>
+    <label>Stock File (Excel / CSV)</label>
     <input type="file" id="stockFile">
 
     <div class="inputs">
@@ -23,7 +25,7 @@
         <input type="number" id="salesDays" value="30">
       </div>
       <div>
-        <label>Target SC</label>
+        <label>Target Stock Cover</label>
         <input type="number" id="targetSC" value="45">
       </div>
     </div>
@@ -33,46 +35,65 @@
 
   <!-- SC BAND SUMMARY -->
   <div class="card">
-    <h2>📊 SC Band Summary</h2>
-    <table id="scSummary">
+    <h2>📊 SC Band Summary (Style Level)</h2>
+    <table>
       <tr><th>SC Band</th><th>Styles</th></tr>
-      <tr><td>0–30</td><td id="b0"></td></tr>
-      <tr><td>30–60</td><td id="b30"></td></tr>
-      <tr><td>60–120</td><td id="b60"></td></tr>
-      <tr><td>120+</td><td id="b120"></td></tr>
+      <tr><td>0–30</td><td id="b0">0</td></tr>
+      <tr><td>30–60</td><td id="b30">0</td></tr>
+      <tr><td>60–120</td><td id="b60">0</td></tr>
+      <tr><td>120+</td><td id="b120">0</td></tr>
     </table>
   </div>
 
-  <!-- SEARCH -->
-  <input id="search" placeholder="Search Style..." onkeyup="filterTables()">
-
-  <!-- ACTIONS -->
-  <button onclick="exportExcel()">📤 Export to Excel</button>
-
-  <!-- DEMAND -->
-  <div class="card">
-    <h2>📊 Demand Report</h2>
-    <table id="demandTable">
-      <thead>
-        <tr>
-          <th></th><th>Style</th><th>Sales</th><th>Stock</th><th>DRR</th><th>SC</th><th>Demand</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
+  <!-- SEARCH + EXPORT -->
+  <div class="actions">
+    <input id="search" placeholder="Search style..." onkeyup="filterTables()">
+    <button onclick="exportExcel()">📤 Export to Excel</button>
   </div>
 
-  <!-- OVERSTOCK -->
-  <div class="card">
-    <h2>📦 Overstock Report (SC &gt; 120)</h2>
-    <table id="overstockTable">
-      <thead>
-        <tr>
-          <th></th><th>Style</th><th>Sales</th><th>Stock</th><th>DRR</th><th>SC</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showTab('demand')">📊 Demand Report</button>
+    <button class="tab-btn" onclick="showTab('overstock')">📦 Overstock (SC > 120)</button>
+  </div>
+
+  <!-- DEMAND TAB -->
+  <div id="demandTab" class="tab-content active">
+    <div class="card">
+      <table id="demandTable">
+        <thead>
+          <tr>
+            <th></th>
+            <th>Style</th>
+            <th>Sales</th>
+            <th>Stock</th>
+            <th>DRR</th>
+            <th>SC</th>
+            <th>Demand</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- OVERSTOCK TAB -->
+  <div id="overstockTab" class="tab-content">
+    <div class="card">
+      <table id="overstockTable">
+        <thead>
+          <tr>
+            <th></th>
+            <th>Style</th>
+            <th>Sales</th>
+            <th>Stock</th>
+            <th>DRR</th>
+            <th>SC</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
   </div>
 
 </div>

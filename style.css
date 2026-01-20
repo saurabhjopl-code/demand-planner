@@ -5,7 +5,7 @@ body {
 }
 
 .container {
-  max-width: 1300px;
+  max-width: 1400px;
   margin: auto;
 }
 
@@ -73,7 +73,7 @@ th {
 
 .tab-btn.active {
   background: #1a73e8;
-  color: #fff;
+  color: white;
 }
 
 .tab-content {

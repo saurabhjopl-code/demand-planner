@@ -11,6 +11,7 @@
 <div class="container">
   <h1>Demand Planning Tool</h1>
 
+  <!-- INPUTS -->
   <div class="card">
     <label>Sales File</label>
     <input type="file" id="salesFile">
@@ -44,8 +45,13 @@
     </table>
   </div>
 
-  <input id="search" placeholder="Search style..." onkeyup="filterTables()">
+  <!-- SEARCH + EXPORT -->
+  <div class="actions">
+    <input id="search" placeholder="Search style (works in all tabs)">
+    <button onclick="exportFullReport()">📤 Export Full Report</button>
+  </div>
 
+  <!-- TABS -->
   <div class="tabs">
     <button class="tab-btn active" onclick="showTab('demand')">📊 Demand</button>
     <button class="tab-btn" onclick="showTab('overstock')">📦 Overstock</button>
@@ -105,7 +111,7 @@
   <!-- SIZE ANALYSIS -->
   <div id="sizeanalysisTab" class="tab-content">
     <div class="card">
-      <table>
+      <table id="sizeAnalysisTable">
         <tr><th>Category</th><th>Units</th><th>% Share</th></tr>
         <tr><td>Normal (S–XXL)</td><td id="normalSales">0</td><td id="normalPct">0%</td></tr>
         <tr><td>Plus1 (3XL–6XL)</td><td id="plus1Sales">0</td><td id="plus1Pct">0%</td></tr>
@@ -117,7 +123,18 @@
   <!-- SIZE CURVE -->
   <div id="sizecurveTab" class="tab-content">
     <div class="card">
-      <h2>Style-wise Size Curve Recommendation (Demand-aware)</h2>
+      <h2>Style-wise Size Curve Recommendation</h2>
+
+      <!-- HELP -->
+      <div class="help-box">
+        <b>How to read this:</b><br>
+        • <b>Style Demand</b> = units needed to maintain target stock cover<br>
+        • Recommendation splits demand by <b>actual size sales mix</b><br>
+        • Sizes with high stock cover get lower allocation<br>
+        • Sizes with low stock cover get higher allocation<br>
+        • Use this directly to create PO size quantities
+      </div>
+
       <table id="sizeCurveTable">
         <thead>
           <tr>

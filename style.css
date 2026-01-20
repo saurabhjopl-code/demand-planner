@@ -79,3 +79,9 @@ th {
 .hidden {
   display: none;
 }
+#search {
+  width: 300px;
+  padding: 10px;
+  margin: 15px 0;
+  font-size: 14px;
+}

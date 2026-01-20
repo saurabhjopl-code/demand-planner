@@ -1,89 +1,108 @@
 function readFile(file) {
-  return new Promise((resolve, reject) => {
+  return new Promise(resolve => {
     const reader = new FileReader();
-
     reader.onload = e => {
-      const data = new Uint8Array(e.target.result);
-      const workbook = XLSX.read(data, { type: 'array' });
-      const sheet = workbook.Sheets[workbook.SheetNames[0]];
-      const json = XLSX.utils.sheet_to_json(sheet, { defval: 0 });
-      resolve(json);
+      const wb = XLSX.read(e.target.result, { type: 'array' });
+      const sheet = wb.Sheets[wb.SheetNames[0]];
+      resolve(XLSX.utils.sheet_to_json(sheet, { defval: 0 }));
     };
-
-    reader.onerror = reject;
     reader.readAsArrayBuffer(file);
   });
 }
 
-function extractStyle(sku) {
-  return sku.split('-')[0];
+function processFiles() {
+  Promise.all([
+    readFile(salesFile.files[0]),
+    readFile(stockFile.files[0])
+  ]).then(([sales, stock]) => calculate(sales, stock));
 }
 
-async function processFiles() {
-  const salesFile = document.getElementById("salesFile").files[0];
-  const stockFile = document.getElementById("stockFile").files[0];
-  const salesDays = Number(document.getElementById("salesDays").value);
-  const targetSC = Number(document.getElementById("targetSC").value);
+function calculate(sales, stock) {
+  const salesDays = +salesDaysInput.value;
+  const targetSC = +targetSCInput.value;
 
-  if (!salesFile || !stockFile) {
-    alert("Please upload both files");
-    return;
-  }
+  const map = {};
 
-  const salesData = await readFile(salesFile);
-  const stockData = await readFile(stockFile);
-
-  const styleMap = {};
-
-  // Process Sales
-  salesData.forEach(row => {
-    const sku = row["SKU"];
-    const qty = Number(row["Quantity"]) || 0;
-    if (!sku) return;
-
-    const style = extractStyle(sku);
-    if (!styleMap[style]) {
-      styleMap[style] = { sales: 0, stock: 0 };
-    }
-    styleMap[style].sales += qty;
+  sales.forEach(r => {
+    const [style, size] = r.SKU.split("-");
+    map[style] ??= {};
+    map[style][size] ??= { sales: 0, stock: 0 };
+    map[style][size].sales += +r.Quantity;
   });
 
-  // Process Stock
-  stockData.forEach(row => {
-    const sku = row["SKU"];
-    const stock = Number(row["Available Stock"]) || 0;
-    if (!sku) return;
-
-    const style = extractStyle(sku);
-    if (!styleMap[style]) {
-      styleMap[style] = { sales: 0, stock: 0 };
-    }
-    styleMap[style].stock += stock;
+  stock.forEach(r => {
+    const [style, size] = r.SKU.split("-");
+    map[style] ??= {};
+    map[style][size] ??= { sales: 0, stock: 0 };
+    map[style][size].stock += +r["Available Stock"];
   });
 
-  const tbody = document.querySelector("#resultTable tbody");
-  tbody.innerHTML = "";
+  render(map, salesDays, targetSC);
+}
 
-  Object.entries(styleMap).forEach(([style, data]) => {
-    const drr = data.sales > 0 ? data.sales / salesDays : 0;
-    const sc = drr > 0 ? data.stock / drr : 9999;
+function render(data, salesDays, targetSC) {
+  demandTable.tBodies[0].innerHTML = "";
+  overstockTable.tBodies[0].innerHTML = "";
 
-    if (sc <= 120) return;
+  Object.entries(data).forEach(([style, sizes]) => {
+    let sales = 0, stock = 0;
+    Object.values(sizes).forEach(v => {
+      sales += v.sales;
+      stock += v.stock;
+    });
 
-    let demand = 0;
-    if (sc < targetSC && drr > 0) {
-      demand = Math.ceil((targetSC - sc) * drr);
-    }
+    const drr = sales ? sales / salesDays : 0;
+    const sc = drr ? stock / drr : 9999;
+    const demand = sc < targetSC ? Math.ceil((targetSC - sc) * drr) : 0;
 
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${style}</td>
-      <td>${data.sales}</td>
-      <td>${data.stock}</td>
-      <td>${drr.toFixed(2)}</td>
-      <td>${sc >= 9999 ? "No Sales" : sc.toFixed(1)}</td>
-      <td>${demand}</td>
+    if (demand > 0) addRow(demandTable, style, sizes, sales, stock, drr, sc, demand, true);
+    if (sc > 120) addRow(overstockTable, style, sizes, sales, stock, drr, sc, 0, false);
+  });
+}
+
+function addRow(table, style, sizes, sales, stock, drr, sc, demand, showDemand) {
+  const tbody = table.tBodies[0];
+  const id = Math.random().toString(36).substr(2, 5);
+
+  const tr = tbody.insertRow();
+  tr.innerHTML = `
+    <td class="expand-btn" onclick="toggle('${id}')">+</td>
+    <td>${style}</td>
+    <td>${sales}</td>
+    <td>${stock}</td>
+    <td>${drr.toFixed(2)}</td>
+    <td>${sc.toFixed(1)}</td>
+    ${showDemand ? `<td>${demand}</td>` : ""}
+  `;
+
+  Object.entries(sizes).forEach(([size, v]) => {
+    const sr = tbody.insertRow();
+    sr.className = `sub-row hidden ${id}`;
+    const drrS = v.sales ? v.sales / salesDays : 0;
+    const scS = drrS ? v.stock / drrS : 9999;
+
+    sr.innerHTML = `
+      <td></td>
+      <td>${style}-${size}</td>
+      <td>${v.sales}</td>
+      <td>${v.stock}</td>
+      <td>${drrS.toFixed(2)}</td>
+      <td>${scS.toFixed(1)}</td>
+      ${showDemand ? `<td></td>` : ""}
     `;
-    tbody.appendChild(tr);
   });
 }
+
+function toggle(id) {
+  document.querySelectorAll(`.${id}`).forEach(r => {
+    r.classList.toggle("hidden");
+  });
+}
+
+/* DOM shortcuts */
+const salesFile = document.getElementById("salesFile");
+const stockFile = document.getElementById("stockFile");
+const salesDaysInput = document.getElementById("salesDays");
+const targetSCInput = document.getElementById("targetSC");
+const demandTable = document.getElementById("demandTable");
+const overstockTable = document.getElementById("overstockTable");

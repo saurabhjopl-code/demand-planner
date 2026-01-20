@@ -3,22 +3,38 @@ const NORMAL=new Set(["S","M","L","XL","XXL"]);
 const PLUS1=new Set(["3XL","4XL","5XL","6XL"]);
 const PLUS2=new Set(["7XL","8XL","9XL","10XL"]);
 
-function readFile(f){return new Promise(r=>{const fr=new FileReader();fr.onload=e=>{const wb=XLSX.read(e.target.result,{type:"array"});r(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:0}))};fr.readAsArrayBuffer(f)})}
+function readFile(f){
+  return new Promise(r=>{
+    const fr=new FileReader();
+    fr.onload=e=>{
+      const wb=XLSX.read(e.target.result,{type:"array"});
+      r(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:0}));
+    };
+    fr.readAsArrayBuffer(f);
+  });
+}
 
-function normalizeSKU(s){if(!s)return{style:"",size:null};const p=s.split("-");if(p.length<2||!p[1]||p[1]==="undefined")return{style:p[0],size:null};return{style:p[0],size:p[1]}}
+function normalizeSKU(s){
+  if(!s) return {style:"",size:null};
+  const p=s.split("-");
+  if(p.length<2||!p[1]||p[1]==="undefined") return {style:p[0],size:null};
+  return {style:p[0],size:p[1]};
+}
 
 function processFiles(){
-  Promise.all([readFile(salesFile.files[0]),readFile(stockFile.files[0])])
-  .then(([sales,stock])=>calculate(sales,stock))
+  Promise.all([
+    readFile(salesFile.files[0]),
+    readFile(stockFile.files[0])
+  ]).then(([sales,stock])=>calculate(sales,stock));
 }
 
 function calculate(sales,stock){
-  const sd=+salesDays.value,target=+targetSC.value;
-  const map={},bands={b0:0,b30:0,b60:0,b120:0};
+  const sd=+salesDays.value, target=+targetSC.value;
+  const map={}, bands={b0:0,b30:0,b60:0,b120:0};
   let n=0,p1=0,p2=0;
 
   sales.forEach(r=>{
-    const{style,size}=normalizeSKU(r.SKU);
+    const {style,size}=normalizeSKU(r.SKU);
     map[style]??={};
     map[style][size]??={sales:0,stock:0};
     map[style][size].sales+=+r.Quantity;
@@ -28,7 +44,7 @@ function calculate(sales,stock){
   });
 
   stock.forEach(r=>{
-    const{style,size}=normalizeSKU(r.SKU);
+    const {style,size}=normalizeSKU(r.SKU);
     map[style]??={};
     map[style][size]??={sales:0,stock:0};
     map[style][size].stock+=+r["Available Stock"];
@@ -42,6 +58,7 @@ function calculate(sales,stock){
   Object.keys(bands).forEach(k=>document.getElementById(k).innerText=bands[k]);
 }
 
+/* ---------------- DEMAND + OVERSTOCK ---------------- */
 function renderDemandOverstock(map,sd,target,bands){
   demandTable.tBodies[0].innerHTML="";
   overstockTable.tBodies[0].innerHTML="";
@@ -50,10 +67,18 @@ function renderDemandOverstock(map,sd,target,bands){
   Object.entries(map).forEach(([style,sizes])=>{
     let s=0,st=0;
     Object.values(sizes).forEach(v=>{s+=v.sales;st+=v.stock});
-    const drr=s?s/sd:0,sc=drr?st/drr:Infinity;
-    if(sc<=30)bands.b0++;else if(sc<=60)bands.b30++;else if(sc<=120)bands.b60++;else bands.b120++;
+    const drr=s?s/sd:0;
+    const sc=drr?st/drr:Infinity;
+
+    if(sc<=30)bands.b0++; else if(sc<=60)bands.b30++;
+    else if(sc<=120)bands.b60++; else bands.b120++;
+
     const demand=(drr&&sc<target)?Math.ceil((target-sc)*drr):0;
-    const sz=Object.entries(sizes).filter(([z])=>z).sort((a,b)=>SIZE_ORDER.indexOf(a[0])-SIZE_ORDER.indexOf(b[0]));
+
+    const sz=Object.entries(sizes)
+      .filter(([z])=>z)
+      .sort((a,b)=>SIZE_ORDER.indexOf(a[0])-SIZE_ORDER.indexOf(b[0]));
+
     if(demand>0)dRows.push({style,s,st,drr,sc,demand,sz});
     if(sc>120)oRows.push({style,s,st,drr,sc,sz});
   });
@@ -66,7 +91,7 @@ function renderDemandOverstock(map,sd,target,bands){
 }
 
 function renderTable(table,rows,showDemand){
-  const tb=table.tBodies[0];tb.innerHTML="";
+  const tb=table.tBodies[0];
   rows.forEach((r,i)=>{
     const id="r"+i;
     tb.insertAdjacentHTML("beforeend",`
@@ -93,8 +118,9 @@ function renderTable(table,rows,showDemand){
   });
 }
 
+/* ---------------- SIZE MIX ---------------- */
 function renderSizeMix(map){
-  const tb=sizeMixTable.tBodies[0];tb.innerHTML="";
+  const tb=sizeMixTable.tBodies[0]; tb.innerHTML="";
   Object.entries(map).forEach(([style,sizes])=>{
     let t=0,n=0,p1=0,p2=0;
     Object.entries(sizes).forEach(([z,v])=>{
@@ -115,37 +141,80 @@ function renderSizeMix(map){
   });
 }
 
+/* ---------------- SIZE ANALYSIS ---------------- */
 function renderSizeAnalysis(n,p1,p2){
   const t=n+p1+p2;
-  normalSales.innerText=n;plus1Sales.innerText=p1;plus2Sales.innerText=p2;
+  normalSales.innerText=n;
+  plus1Sales.innerText=p1;
+  plus2Sales.innerText=p2;
   normalPct.innerText=t?((n/t)*100).toFixed(1)+"%":"0%";
   plus1Pct.innerText=t?((p1/t)*100).toFixed(1)+"%":"0%";
   plus2Pct.innerText=t?((p2/t)*100).toFixed(1)+"%":"0%";
 }
 
+/* ---------------- DEMAND-AWARE SIZE CURVE ---------------- */
 function renderSizeCurve(map,sd,target){
-  const tb=sizeCurveTable.tBodies[0];tb.innerHTML="";
+  const tb=sizeCurveTable.tBodies[0];
+  tb.innerHTML="";
+
   Object.entries(map).forEach(([style,sizes])=>{
-    let s=0;Object.values(sizes).forEach(v=>s+=v.sales);
-    if(s<20)return;
-    const curve=[];
+    let totalSales=0,totalStock=0;
+    Object.values(sizes).forEach(v=>{totalSales+=v.sales; totalStock+=v.stock});
+    if(totalSales<20) return;
+
+    const drr=totalSales/sd;
+    const sc=drr?totalStock/drr:Infinity;
+    const styleDemand=(drr&&sc<target)?Math.ceil((target-sc)*drr):0;
+    if(styleDemand<=0) return;
+
+    // size shares
+    let sizeShares=[];
     Object.entries(sizes).forEach(([z,v])=>{
-      if(!z||v.sales===0)return;
-      const share=v.sales/s;
-      const alloc=Math.round(share*50);
-      if(alloc>0)curve.push(`${z}:${alloc}`);
+      if(!z||v.sales===0) return;
+      const drrS=v.sales/sd;
+      const scS=drrS?v.stock/drrS:Infinity;
+
+      let weight=v.sales/totalSales;
+
+      // SC adjustment
+      if(scS>target*1.5) weight*=0.3;
+      else if(scS>target) weight*=0.6;
+      else if(scS<target*0.5) weight*=1.3;
+
+      sizeShares.push({z,weight});
     });
+
+    const totalWeight=sizeShares.reduce((a,b)=>a+b.weight,0);
+    let allocated=0;
+    let curve=[];
+
+    sizeShares.forEach((s,i)=>{
+      let qty = Math.round((s.weight/totalWeight)*styleDemand);
+      if(i===sizeShares.length-1) qty=styleDemand-allocated;
+      allocated+=qty;
+      if(qty>0) curve.push(`${s.z}:${qty}`);
+    });
+
     tb.insertAdjacentHTML("beforeend",`
       <tr>
         <td>${style}</td>
-        <td>50</td>
+        <td>${styleDemand}</td>
         <td>${curve.join(", ")}</td>
       </tr>`);
   });
 }
 
-function toggle(id,el){document.querySelectorAll("."+id).forEach(r=>r.classList.toggle("hidden"));el.innerText=el.innerText==="+"?"−":"+"}
-function filterTables(){const q=search.value.toLowerCase();document.querySelectorAll(".main-row").forEach(r=>r.style.display=r.dataset.style.toLowerCase().includes(q)?"":"none")}
+/* ---------------- UI HELPERS ---------------- */
+function toggle(id,el){
+  document.querySelectorAll("."+id).forEach(r=>r.classList.toggle("hidden"));
+  el.innerText=el.innerText==="+"?"−":"+";
+}
+function filterTables(){
+  const q=search.value.toLowerCase();
+  document.querySelectorAll(".main-row").forEach(r=>{
+    r.style.display=r.dataset.style.toLowerCase().includes(q)?"":"none";
+  });
+}
 function showTab(t){
   document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
   document.querySelectorAll(".tab-content").forEach(c=>c.classList.remove("active"));

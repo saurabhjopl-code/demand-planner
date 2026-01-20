@@ -11,7 +11,6 @@
 <div class="container">
   <h1>Demand Planning Tool</h1>
 
-  <!-- INPUTS -->
   <div class="card">
     <label>Sales File</label>
     <input type="file" id="salesFile">
@@ -45,10 +44,8 @@
     </table>
   </div>
 
-  <!-- SEARCH -->
   <input id="search" placeholder="Search style..." onkeyup="filterTables()">
 
-  <!-- TABS -->
   <div class="tabs">
     <button class="tab-btn active" onclick="showTab('demand')">📊 Demand</button>
     <button class="tab-btn" onclick="showTab('overstock')">📦 Overstock</button>
@@ -120,13 +117,13 @@
   <!-- SIZE CURVE -->
   <div id="sizecurveTab" class="tab-content">
     <div class="card">
-      <h2>Style-wise Size Curve Recommendation</h2>
+      <h2>Style-wise Size Curve Recommendation (Demand-aware)</h2>
       <table id="sizeCurveTable">
         <thead>
           <tr>
             <th>Style</th>
-            <th>Total Demand</th>
-            <th>Recommended Size Curve</th>
+            <th>Style Demand</th>
+            <th>Recommended Buy (Size : Qty)</th>
           </tr>
         </thead>
         <tbody></tbody>

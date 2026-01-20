@@ -33,6 +33,18 @@
     <button onclick="processFiles()">Generate Reports</button>
   </div>
 
+  <!-- SC BAND SUMMARY -->
+  <div class="card">
+    <h2>📊 Stock Cover Band Summary (Style Level)</h2>
+    <table>
+      <tr><th>SC Band</th><th>Styles</th></tr>
+      <tr><td>0–30</td><td id="b0">0</td></tr>
+      <tr><td>30–60</td><td id="b30">0</td></tr>
+      <tr><td>60–120</td><td id="b60">0</td></tr>
+      <tr><td>120+</td><td id="b120">0</td></tr>
+    </table>
+  </div>
+
   <!-- SEARCH -->
   <input id="search" placeholder="Search style..." onkeyup="filterTables()">
 
@@ -42,6 +54,7 @@
     <button class="tab-btn" onclick="showTab('overstock')">📦 Overstock</button>
     <button class="tab-btn" onclick="showTab('sizemix')">📐 Size Mix %</button>
     <button class="tab-btn" onclick="showTab('sizeanalysis')">📊 Size Analysis</button>
+    <button class="tab-btn" onclick="showTab('sizecurve')">🧮 Size Curve</button>
   </div>
 
   <!-- DEMAND -->
@@ -74,7 +87,7 @@
     </div>
   </div>
 
-  <!-- SIZE MIX PER STYLE -->
+  <!-- SIZE MIX -->
   <div id="sizemixTab" class="tab-content">
     <div class="card">
       <table id="sizeMixTable">
@@ -82,9 +95,9 @@
           <tr>
             <th>Style</th>
             <th>Total Sales</th>
-            <th>Normal % (S–XXL)</th>
-            <th>Plus1 % (3XL–6XL)</th>
-            <th>Plus2 % (7XL–10XL)</th>
+            <th>Normal %</th>
+            <th>Plus1 %</th>
+            <th>Plus2 %</th>
           </tr>
         </thead>
         <tbody></tbody>
@@ -95,12 +108,28 @@
   <!-- SIZE ANALYSIS -->
   <div id="sizeanalysisTab" class="tab-content">
     <div class="card">
-      <h2>Overall Size Sales Distribution</h2>
       <table>
-        <tr><th>Category</th><th>Units Sold</th><th>% Share</th></tr>
+        <tr><th>Category</th><th>Units</th><th>% Share</th></tr>
         <tr><td>Normal (S–XXL)</td><td id="normalSales">0</td><td id="normalPct">0%</td></tr>
         <tr><td>Plus1 (3XL–6XL)</td><td id="plus1Sales">0</td><td id="plus1Pct">0%</td></tr>
         <tr><td>Plus2 (7XL–10XL)</td><td id="plus2Sales">0</td><td id="plus2Pct">0%</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- SIZE CURVE -->
+  <div id="sizecurveTab" class="tab-content">
+    <div class="card">
+      <h2>Style-wise Size Curve Recommendation</h2>
+      <table id="sizeCurveTable">
+        <thead>
+          <tr>
+            <th>Style</th>
+            <th>Total Demand</th>
+            <th>Recommended Size Curve</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
       </table>
     </div>
   </div>

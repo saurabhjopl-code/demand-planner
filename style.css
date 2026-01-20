@@ -22,6 +22,12 @@ body {
   gap: 20px;
 }
 
+.actions {
+  display: flex;
+  gap: 15px;
+  margin: 15px 0;
+}
+
 label {
   font-weight: bold;
   display: block;
@@ -101,5 +107,13 @@ th {
 #search {
   width: 300px;
   padding: 10px;
-  margin: 10px 0;
+}
+
+.help-box {
+  background: #eef3ff;
+  border-left: 4px solid #1a73e8;
+  padding: 12px;
+  margin-bottom: 15px;
+  text-align: left;
+  font-size: 14px;
 }

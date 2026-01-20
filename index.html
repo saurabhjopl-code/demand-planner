@@ -13,10 +13,10 @@
 
   <!-- INPUTS -->
   <div class="card">
-    <label>Sales File (Excel / CSV)</label>
+    <label>Sales File</label>
     <input type="file" id="salesFile">
 
-    <label>Stock File (Excel / CSV)</label>
+    <label>Stock File</label>
     <input type="file" id="stockFile">
 
     <div class="inputs">
@@ -33,43 +33,23 @@
     <button onclick="processFiles()">Generate Reports</button>
   </div>
 
-  <!-- SC BAND SUMMARY -->
-  <div class="card">
-    <h2>📊 SC Band Summary (Style Level)</h2>
-    <table>
-      <tr><th>SC Band</th><th>Styles</th></tr>
-      <tr><td>0–30</td><td id="b0">0</td></tr>
-      <tr><td>30–60</td><td id="b30">0</td></tr>
-      <tr><td>60–120</td><td id="b60">0</td></tr>
-      <tr><td>120+</td><td id="b120">0</td></tr>
-    </table>
-  </div>
-
-  <!-- SEARCH + EXPORT -->
-  <div class="actions">
-    <input id="search" placeholder="Search style..." onkeyup="filterTables()">
-    <button onclick="exportExcel()">📤 Export to Excel</button>
-  </div>
+  <!-- SEARCH -->
+  <input id="search" placeholder="Search style..." onkeyup="filterTables()">
 
   <!-- TABS -->
   <div class="tabs">
-    <button class="tab-btn active" onclick="showTab('demand')">📊 Demand Report</button>
-    <button class="tab-btn" onclick="showTab('overstock')">📦 Overstock (SC > 120)</button>
+    <button class="tab-btn active" onclick="showTab('demand')">📊 Demand</button>
+    <button class="tab-btn" onclick="showTab('overstock')">📦 Overstock</button>
+    <button class="tab-btn" onclick="showTab('size')">📐 Size Analysis</button>
   </div>
 
-  <!-- DEMAND TAB -->
+  <!-- DEMAND -->
   <div id="demandTab" class="tab-content active">
     <div class="card">
       <table id="demandTable">
         <thead>
           <tr>
-            <th></th>
-            <th>Style</th>
-            <th>Sales</th>
-            <th>Stock</th>
-            <th>DRR</th>
-            <th>SC</th>
-            <th>Demand</th>
+            <th></th><th>Style</th><th>Sales</th><th>Stock</th><th>DRR</th><th>SC</th><th>Demand</th>
           </tr>
         </thead>
         <tbody></tbody>
@@ -77,21 +57,28 @@
     </div>
   </div>
 
-  <!-- OVERSTOCK TAB -->
+  <!-- OVERSTOCK -->
   <div id="overstockTab" class="tab-content">
     <div class="card">
       <table id="overstockTable">
         <thead>
           <tr>
-            <th></th>
-            <th>Style</th>
-            <th>Sales</th>
-            <th>Stock</th>
-            <th>DRR</th>
-            <th>SC</th>
+            <th></th><th>Style</th><th>Sales</th><th>Stock</th><th>DRR</th><th>SC</th>
           </tr>
         </thead>
         <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- SIZE ANALYSIS -->
+  <div id="sizeTab" class="tab-content">
+    <div class="card">
+      <h2>Normal vs Plus Size Sales</h2>
+      <table>
+        <tr><th>Category</th><th>Units Sold</th><th>% Share</th></tr>
+        <tr><td>Normal (S–XXL)</td><td id="normalSales">0</td><td id="normalPct">0%</td></tr>
+        <tr><td>Plus (3XL–10XL)</td><td id="plusSales">0</td><td id="plusPct">0%</td></tr>
       </table>
     </div>
   </div>

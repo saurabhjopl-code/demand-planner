@@ -126,13 +126,38 @@ function calculate(sales,stock){
 
     if(sc<30)b0++; else if(sc<60)b30++; else if(sc<120)b60++; else b120++;
 
-    let remark="";
-    let cls="";
-    if(sc<30 && drr>30){ remark="High Demand"; cls="high-demand"; }
-    else if(sc>=30 && sc<45 && drr<30){ remark="Mid Demand"; cls="mid-demand"; }
+    /* -------- DEMAND COLOR LOGIC -------- */
+    let dClass="", dRemark="";
 
-    if(demand>0) demandRows.push({style,data,ts,tk,drr,sc,demand,remark,cls});
-    if(sc>120) overstockRows.push({style,data,ts,tk,drr,sc});
+    if(ts < 50){
+      dRemark="Low Sale Units";
+    } else {
+      if(drr>20 && sc<20){
+        dClass="green"; dRemark="High Demand";
+      } else if(drr>10 && drr<20 && sc<30 && sc>10){
+        dClass="amber"; dRemark="Mid Demand";
+      } else if(drr<10 && sc<10){
+        dClass="red"; dRemark="Low Demand";
+      }
+    }
+
+    /* -------- OVERSTOCK COLOR LOGIC -------- */
+    let oClass="", oRemark="";
+
+    if(ts < 50 && sc > 90){
+      oClass="red"; oRemark="High Risk";
+    } else {
+      if(drr>30){
+        oClass="green"; oRemark="Low Risk";
+      } else if(drr<30 && drr>10){
+        oClass="amber"; oRemark="Mid Risk";
+      } else if(drr<10){
+        oClass="red"; oRemark="High Risk";
+      }
+    }
+
+    if(demand>0) demandRows.push({style,data,ts,tk,drr,sc,demand,dClass,dRemark});
+    if(sc>120) overstockRows.push({style,data,ts,tk,drr,sc,oClass,oRemark});
   });
 
   demandRows.sort((a,b)=>b.demand-a.demand);
@@ -153,7 +178,7 @@ function calculate(sales,stock){
   plus1Pct.innerText=total?((p1/total)*100).toFixed(1)+"%":"0%";
   plus2Pct.innerText=total?((p2/total)*100).toFixed(1)+"%":"0%";
 
-  /* SIZE CURVE TABLE (WIDE) */
+  /* SIZE CURVE */
   demandRows.forEach(r=>{
     let row={};
     SIZE_ORDER.forEach(s=>row[s]=0);
@@ -170,15 +195,21 @@ function calculate(sales,stock){
   });
 }
 
-function renderExpandable(rows,tbody,showDemand){
-  rows.forEach((r)=>{
+function renderExpandable(rows,tbody,isDemand){
+  rows.forEach(r=>{
     const key="k"+Math.random().toString(36).slice(2);
+    const cls=isDemand?r.dClass:r.oClass;
+    const remark=isDemand?r.dRemark:r.oRemark;
+
     tbody.insertAdjacentHTML("beforeend",`
-      <tr class="${r.cls||""}" data-style="${r.style.toLowerCase()}">
+      <tr class="${cls}" data-style="${r.style.toLowerCase()}">
         <td class="expand" onclick="toggle('${key}',this)">+</td>
-        <td>${r.style}</td><td>${r.ts}</td><td>${r.tk}</td>
-        <td>${r.drr.toFixed(2)}</td><td>${r.sc.toFixed(1)}</td>
-        ${showDemand?`<td>${r.demand}</td><td>${r.remark||""}</td>`:""}
+        <td>${r.style}</td>
+        <td>${r.ts}</td>
+        <td>${r.tk}</td>
+        <td>${r.drr.toFixed(2)}</td>
+        <td>${r.sc.toFixed(1)}</td>
+        ${isDemand?`<td>${r.demand}</td><td>${remark||""}</td>`:""}
       </tr>`);
 
     Object.entries(r.data.sizes)
@@ -186,7 +217,7 @@ function renderExpandable(rows,tbody,showDemand){
       .forEach(([z,v])=>{
         const drrS=v.sales/(+salesDays.value);
         const scS=drrS?v.stock/drrS:0;
-        const dS=(showDemand&&scS<+targetSC.value)?Math.ceil((+targetSC.value-scS)*drrS):"";
+        const dS=(isDemand&&scS<+targetSC.value)?Math.ceil((+targetSC.value-scS)*drrS):"";
         tbody.insertAdjacentHTML("beforeend",`
           <tr class="sub-row ${key}" style="display:none" data-style="${r.style.toLowerCase()}">
             <td></td>
@@ -195,7 +226,7 @@ function renderExpandable(rows,tbody,showDemand){
             <td>${v.stock}</td>
             <td>${drrS.toFixed(2)}</td>
             <td>${scS.toFixed(1)}</td>
-            ${showDemand?`<td>${dS}</td><td></td>`:""}
+            ${isDemand?`<td>${dS}</td><td></td>`:""}
           </tr>`);
       });
   });

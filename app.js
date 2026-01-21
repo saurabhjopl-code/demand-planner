@@ -5,7 +5,7 @@ const NORMAL=new Set(["S","M","L","XL","XXL"]);
 const PLUS1=new Set(["3XL","4XL","5XL","6XL"]);
 const PLUS2=new Set(["7XL","8XL","9XL","10XL"]);
 
-const salesFile=salesFileEl=document.getElementById("salesFile");
+const salesFile=document.getElementById("salesFile");
 const stockFile=document.getElementById("stockFile");
 const salesDays=document.getElementById("salesDays");
 const targetSC=document.getElementById("targetSC");
@@ -27,6 +27,7 @@ const plus2Pct=document.getElementById("plus2Pct");
 generateBtn.onclick=generate;
 exportBtn.onclick=exportExcel;
 
+/* TAB SWITCH */
 document.querySelectorAll(".tab-btn").forEach(b=>{
   b.onclick=()=>{
     document.querySelectorAll(".tab-btn").forEach(x=>x.classList.remove("active"));
@@ -36,6 +37,7 @@ document.querySelectorAll(".tab-btn").forEach(b=>{
   };
 });
 
+/* SEARCH */
 search.onkeyup=()=>{
   const q=search.value.toLowerCase();
   document.querySelectorAll("[data-style]").forEach(r=>{
@@ -61,6 +63,7 @@ function normalizeSKU(sku){
   return {style:p[0],size:p[1]};
 }
 
+/* MAIN */
 function generate(){
   if(!salesFile.files[0]||!stockFile.files[0]){
     alert("Upload both files");
@@ -99,7 +102,11 @@ function calculate(sales,stock){
     map[style].sizes[size].stock+=+r["Available Stock"];
   });
 
-  Object.entries(map).forEach(([style,data],i)=>{
+  /* BUILD STYLE DATA */
+  let demandRows=[];
+  let overstockRows=[];
+
+  Object.entries(map).forEach(([style,data],idx)=>{
     let ts=0,tk=0;
     Object.values(data.sizes).forEach(v=>{ts+=v.sales;tk+=v.stock;});
     if(ts===0) return;
@@ -110,29 +117,15 @@ function calculate(sales,stock){
 
     if(sc<=30)b0++; else if(sc<=60)b30++; else if(sc<=120)b60++; else b120++;
 
-    const styleRow=`
-      <tr data-style="${style.toLowerCase()}">
-        <td class="expand" onclick="toggle(${i})">+</td>
-        <td>${style}</td><td>${ts}</td><td>${tk}</td>
-        <td>${drr.toFixed(2)}</td><td>${sc.toFixed(1)}</td>
-        ${demand>0?`<td>${demand}</td>`:`<td></td>`}
-      </tr>`;
-    if(demand>0) demandBody.insertAdjacentHTML("beforeend",styleRow);
-    if(sc>120) overstockBody.insertAdjacentHTML("beforeend",styleRow.replace(`<td>${demand}</td>`,""));
-
-    let curve=[];
-    Object.entries(data.sizes)
-      .sort((a,b)=>SIZE_ORDER.indexOf(a[0])-SIZE_ORDER.indexOf(b[0]))
-      .forEach(([z,v])=>{
-        if(v.sales>0) curve.push(`${z}:${Math.round((v.sales/ts)*demand)}`);
-      });
-    if(demand>0){
-      sizeCurveBody.insertAdjacentHTML("beforeend",`
-        <tr data-style="${style.toLowerCase()}">
-          <td>${style}</td><td>${demand}</td><td>${curve.join(", ")}</td>
-        </tr>`);
-    }
+    if(demand>0) demandRows.push({style,data,ts,tk,drr,sc,demand});
+    if(sc>120) overstockRows.push({style,data,ts,tk,drr,sc});
   });
+
+  /* SORT DEMAND DESC */
+  demandRows.sort((a,b)=>b.demand-a.demand);
+
+  renderExpandable(demandRows,demandBody,true);
+  renderExpandable(overstockRows,overstockBody,false);
 
   document.getElementById("b0").innerText=b0;
   document.getElementById("b30").innerText=b30;
@@ -140,18 +133,75 @@ function calculate(sales,stock){
   document.getElementById("b120").innerText=b120;
 
   const total=n+p1+p2;
-  normalSales.innerText=n; plus1Sales.innerText=p1; plus2Sales.innerText=p2;
+  normalSales.innerText=n;
+  plus1Sales.innerText=p1;
+  plus2Sales.innerText=p2;
   normalPct.innerText=total?((n/total)*100).toFixed(1)+"%":"0%";
   plus1Pct.innerText=total?((p1/total)*100).toFixed(1)+"%":"0%";
   plus2Pct.innerText=total?((p2/total)*100).toFixed(1)+"%":"0%";
+
+  /* SIZE CURVE */
+  demandRows.forEach(r=>{
+    let curve=[];
+    Object.entries(r.data.sizes)
+      .sort((a,b)=>SIZE_ORDER.indexOf(a[0])-SIZE_ORDER.indexOf(b[0]))
+      .forEach(([z,v])=>{
+        if(v.sales>0) curve.push(`${z}:${Math.round((v.sales/r.ts)*r.demand)}`);
+      });
+    sizeCurveBody.insertAdjacentHTML("beforeend",`
+      <tr data-style="${r.style.toLowerCase()}">
+        <td>${r.style}</td><td>${r.demand}</td><td>${curve.join(", ")}</td>
+      </tr>`);
+  });
 }
 
+/* EXPANDABLE RENDER */
+function renderExpandable(rows,tbody,showDemand){
+  rows.forEach((r,i)=>{
+    const key="k"+Math.random().toString(36).slice(2);
+    tbody.insertAdjacentHTML("beforeend",`
+      <tr data-style="${r.style.toLowerCase()}">
+        <td class="expand" onclick="toggle('${key}',this)">+</td>
+        <td>${r.style}</td><td>${r.ts}</td><td>${r.tk}</td>
+        <td>${r.drr.toFixed(2)}</td><td>${r.sc.toFixed(1)}</td>
+        ${showDemand?`<td>${r.demand}</td>`:""}
+      </tr>`);
+
+    Object.entries(r.data.sizes)
+      .sort((a,b)=>SIZE_ORDER.indexOf(a[0])-SIZE_ORDER.indexOf(b[0]))
+      .forEach(([z,v])=>{
+        const drrS=v.sales/(+salesDays.value);
+        const scS=drrS?v.stock/drrS:0;
+        const dS=(showDemand&&scS<+targetSC.value)?Math.ceil((+targetSC.value-scS)*drrS):"";
+        tbody.insertAdjacentHTML("beforeend",`
+          <tr class="sub-row ${key}" style="display:none" data-style="${r.style.toLowerCase()}">
+            <td></td>
+            <td>${r.style}-${z}</td>
+            <td>${v.sales}</td>
+            <td>${v.stock}</td>
+            <td>${drrS.toFixed(2)}</td>
+            <td>${scS.toFixed(1)}</td>
+            ${showDemand?`<td>${dS}</td>`:""}
+          </tr>`);
+      });
+  });
+}
+
+/* TOGGLE */
+window.toggle=(key,el)=>{
+  const rows=document.querySelectorAll("."+key);
+  const open=rows[0].style.display==="none";
+  rows.forEach(r=>r.style.display=open?"":"none");
+  el.textContent=open?"−":"+";
+};
+
+/* EXPORT */
 function exportExcel(){
   const wb=XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb,XLSX.utils.table_to_sheet(document.getElementById("demandTable")),"Demand_Style");
-  XLSX.utils.book_append_sheet(wb,XLSX.utils.table_to_sheet(document.getElementById("overstockTable")),"Overstock_Style");
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.table_to_sheet(document.getElementById("demandTable")),"Demand");
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.table_to_sheet(document.getElementById("overstockTable")),"Overstock");
   XLSX.utils.book_append_sheet(wb,XLSX.utils.table_to_sheet(document.getElementById("sizeCurveTable")),"Size_Curve");
-  XLSX.writeFile(wb,"Demand_Planner_V1_1.xlsx");
+  XLSX.writeFile(wb,"Demand_Planner_V1_5.xlsx");
 }
 
 });

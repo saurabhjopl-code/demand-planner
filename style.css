@@ -4,7 +4,7 @@ body {
   padding: 20px;
 }
 
-.container { max-width: 1400px; margin: auto; }
+.container { max-width: 1600px; margin: auto; }
 
 .card {
   background: #fff;
@@ -21,7 +21,7 @@ body {
 
 .control-group { display: flex; flex-direction: column; }
 .control-group.small { width: 120px; }
-.control-actions { margin-left: auto; display: flex; gap: 10px; }
+.control-actions { margin-left: auto; display: flex; gap: 8px; }
 
 button {
   padding: 8px 14px;
@@ -31,6 +31,13 @@ button {
   cursor: pointer;
 }
 
+.summary-row {
+  display: flex;
+  gap: 16px;
+}
+
+.summary-card { flex: 1; }
+
 table {
   width: 100%;
   border-collapse: collapse;
@@ -39,8 +46,9 @@ table {
 
 th, td {
   border: 1px solid #ddd;
-  padding: 8px;
+  padding: 6px;
   text-align: center;
+  font-size: 13px;
 }
 
 th { background: #f1f3f4; }
@@ -55,7 +63,12 @@ th { background: #f1f3f4; }
 .expand { cursor: pointer; font-weight: bold; }
 .sub-row { background: #fafafa; }
 
-#search { width: 300px; padding: 8px; margin-bottom: 10px; }
+.search-wrap {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+#search { width: 300px; padding: 8px; }
 
 .help-box {
   background: #eef3ff;
@@ -63,3 +76,7 @@ th { background: #f1f3f4; }
   padding: 10px;
   margin-bottom: 10px;
 }
+
+/* HIGHLIGHTS */
+.high-demand { background: #ffcccc; }
+.mid-demand { background: #ffe5b4; }

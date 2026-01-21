@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Demand Planning Tool</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <title>Demand Planner – V1.1</title>
+  <link rel="stylesheet" href="style.css" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
@@ -11,27 +11,32 @@
 <div class="container">
   <h1>Demand Planning Tool</h1>
 
-  <!-- INPUTS -->
-  <div class="card">
-    <label>Sales File (SKU, Quantity)</label>
-    <input type="file" id="salesFile">
-
-    <label>Stock File (SKU, Available Stock)</label>
-    <input type="file" id="stockFile">
-
-    <div class="inputs">
-      <div>
-        <label>Sales Days</label>
-        <input type="number" id="salesDays" value="30">
-      </div>
-      <div>
-        <label>Target Stock Cover</label>
-        <input type="number" id="targetSC" value="45">
-      </div>
+  <!-- CONTROL BAR -->
+  <div class="card control-bar">
+    <div class="control-group">
+      <label>Sales File</label>
+      <input type="file" id="salesFile" />
     </div>
 
-    <button id="generateBtn">Generate Reports</button>
-    <button id="exportBtn">Export Full Report</button>
+    <div class="control-group">
+      <label>Stock File</label>
+      <input type="file" id="stockFile" />
+    </div>
+
+    <div class="control-group small">
+      <label>Sales Days</label>
+      <input type="number" id="salesDays" value="30" />
+    </div>
+
+    <div class="control-group small">
+      <label>Target SC</label>
+      <input type="number" id="targetSC" value="45" />
+    </div>
+
+    <div class="control-actions">
+      <button id="generateBtn">Generate Reports</button>
+      <button id="exportBtn">Export Excel</button>
+    </div>
   </div>
 
   <!-- SC BAND SUMMARY -->
@@ -46,13 +51,12 @@
     </table>
   </div>
 
-  <input id="search" placeholder="Search style">
+  <input id="search" placeholder="Search style" />
 
   <!-- TABS -->
   <div class="tabs">
     <button class="tab-btn active" data-tab="demand">Demand</button>
     <button class="tab-btn" data-tab="overstock">Overstock</button>
-    <button class="tab-btn" data-tab="sizemix">Size Mix %</button>
     <button class="tab-btn" data-tab="sizeanalysis">Size Analysis</button>
     <button class="tab-btn" data-tab="sizecurve">Size Curve</button>
   </div>
@@ -63,7 +67,7 @@
       <thead>
         <tr>
           <th></th>
-          <th>Style</th><th>Sales</th><th>Stock</th>
+          <th>Style / SKU</th><th>Sales</th><th>Stock</th>
           <th>DRR</th><th>SC</th><th>Demand</th>
         </tr>
       </thead>
@@ -77,24 +81,8 @@
       <thead>
         <tr>
           <th></th>
-          <th>Style</th><th>Sales</th><th>Stock</th>
+          <th>Style / SKU</th><th>Sales</th><th>Stock</th>
           <th>DRR</th><th>SC</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
-
-  <!-- SIZE MIX -->
-  <div id="sizemixTab" class="tab-content">
-    <table id="sizeMixTable">
-      <thead>
-        <tr>
-          <th>Style</th>
-          <th>Total Sales</th>
-          <th>Normal %</th>
-          <th>Plus1 %</th>
-          <th>Plus2 %</th>
         </tr>
       </thead>
       <tbody></tbody>
@@ -113,13 +101,17 @@
 
   <!-- SIZE CURVE -->
   <div id="sizecurveTab" class="tab-content">
-    <p><b>How to read:</b> Demand split by real size sales mix and adjusted by size-level stock cover.</p>
+    <div class="help-box">
+      <b>How to read this</b><br />
+      • Style Demand = units required to reach target SC<br />
+      • Allocation is based on actual size sales mix<br />
+      • Sizes with higher stock get lower allocation<br />
+      • Use these numbers directly for PO size breakup
+    </div>
     <table id="sizeCurveTable">
       <thead>
         <tr>
-          <th>Style</th>
-          <th>Style Demand</th>
-          <th>Recommended Buy (Size:Qty)</th>
+          <th>Style</th><th>Style Demand</th><th>Recommended Buy (Size:Qty)</th>
         </tr>
       </thead>
       <tbody></tbody>

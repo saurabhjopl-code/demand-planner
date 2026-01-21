@@ -4,22 +4,24 @@ body {
   padding: 20px;
 }
 
-.container {
-  max-width: 1400px;
-  margin: auto;
-}
+.container { max-width: 1400px; margin: auto; }
 
 .card {
   background: #fff;
-  padding: 20px;
-  margin-bottom: 20px;
+  padding: 16px;
+  margin-bottom: 16px;
   border-radius: 6px;
 }
 
-.inputs {
+.control-bar {
   display: flex;
-  gap: 20px;
+  gap: 16px;
+  align-items: flex-end;
 }
+
+.control-group { display: flex; flex-direction: column; }
+.control-group.small { width: 120px; }
+.control-actions { margin-left: auto; display: flex; gap: 10px; }
 
 button {
   padding: 8px 14px;
@@ -27,14 +29,12 @@ button {
   color: #fff;
   border: none;
   cursor: pointer;
-  margin-right: 10px;
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
   background: #fff;
-  margin-bottom: 20px;
 }
 
 th, td {
@@ -43,47 +43,23 @@ th, td {
   text-align: center;
 }
 
-th {
-  background: #f1f3f4;
-}
+th { background: #f1f3f4; }
 
-.tabs {
-  display: flex;
-  gap: 10px;
-  margin: 15px 0;
-}
+.tabs { display: flex; gap: 10px; margin: 12px 0; }
+.tab-btn { padding: 8px 14px; cursor: pointer; border: none; }
+.tab-btn.active { background: #1a73e8; color: #fff; }
 
-.tab-btn {
-  padding: 8px 14px;
-  cursor: pointer;
-  background: #e0e0e0;
-  border: none;
-}
+.tab-content { display: none; }
+.tab-content.active { display: block; }
 
-.tab-btn.active {
-  background: #1a73e8;
-  color: white;
-}
+.expand { cursor: pointer; font-weight: bold; }
+.sub-row { background: #fafafa; }
 
-.tab-content {
-  display: none;
-}
+#search { width: 300px; padding: 8px; margin-bottom: 10px; }
 
-.tab-content.active {
-  display: block;
-}
-
-.expand {
-  cursor: pointer;
-  font-weight: bold;
-}
-
-.sub {
-  background: #fafafa;
-}
-
-#search {
-  width: 300px;
-  padding: 8px;
+.help-box {
+  background: #eef3ff;
+  border-left: 4px solid #1a73e8;
+  padding: 10px;
   margin-bottom: 10px;
 }

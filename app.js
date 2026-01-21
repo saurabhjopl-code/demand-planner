@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
 
-const SIZE_ORDER=["S","M","L","XL","XXL","3XL","4XL","5XL","6XL","7XL","8XL","9XL","10XL"];
+const SIZE_ORDER=["FS","S","M","L","XL","XXL","3XL","4XL","5XL","6XL","7XL","8XL","9XL","10XL"];
 const NORMAL=new Set(["S","M","L","XL","XXL"]);
 const PLUS1=new Set(["3XL","4XL","5XL","6XL"]);
 const PLUS2=new Set(["7XL","8XL","9XL","10XL"]);
@@ -11,7 +11,11 @@ const salesDays=document.getElementById("salesDays");
 const targetSC=document.getElementById("targetSC");
 const generateBtn=document.getElementById("generateBtn");
 const exportBtn=document.getElementById("exportBtn");
+const expandAllBtn=document.getElementById("expandAllBtn");
+const collapseAllBtn=document.getElementById("collapseAllBtn");
+
 const search=document.getElementById("search");
+const clearSearch=document.getElementById("clearSearch");
 
 const demandBody=document.querySelector("#demandTable tbody");
 const overstockBody=document.querySelector("#overstockTable tbody");
@@ -27,7 +31,14 @@ const plus2Pct=document.getElementById("plus2Pct");
 generateBtn.onclick=generate;
 exportBtn.onclick=exportExcel;
 
-/* TAB SWITCH */
+expandAllBtn.onclick=()=>toggleAll(true);
+collapseAllBtn.onclick=()=>toggleAll(false);
+
+clearSearch.onclick=()=>{
+  search.value="";
+  filter("");
+};
+
 document.querySelectorAll(".tab-btn").forEach(b=>{
   b.onclick=()=>{
     document.querySelectorAll(".tab-btn").forEach(x=>x.classList.remove("active"));
@@ -37,13 +48,13 @@ document.querySelectorAll(".tab-btn").forEach(b=>{
   };
 });
 
-/* SEARCH */
-search.onkeyup=()=>{
-  const q=search.value.toLowerCase();
+search.onkeyup=()=>filter(search.value.toLowerCase());
+
+function filter(q){
   document.querySelectorAll("[data-style]").forEach(r=>{
     r.style.display=r.dataset.style.includes(q)?"":"none";
   });
-};
+}
 
 function readFile(file){
   return new Promise(res=>{
@@ -57,13 +68,12 @@ function readFile(file){
 }
 
 function normalizeSKU(sku){
-  if(!sku) return {style:"",size:null};
+  if(!sku) return {style:"",size:"FS"};
   const p=sku.split("-");
-  if(p.length<2||!p[1]||p[1]==="undefined") return {style:p[0],size:null};
+  if(p.length<2||!p[1]||p[1]==="undefined") return {style:p[0],size:"FS"};
   return {style:p[0],size:p[1]};
 }
 
-/* MAIN */
 function generate(){
   if(!salesFile.files[0]||!stockFile.files[0]){
     alert("Upload both files");
@@ -102,11 +112,10 @@ function calculate(sales,stock){
     map[style].sizes[size].stock+=+r["Available Stock"];
   });
 
-  /* BUILD STYLE DATA */
   let demandRows=[];
   let overstockRows=[];
 
-  Object.entries(map).forEach(([style,data],idx)=>{
+  Object.entries(map).forEach(([style,data])=>{
     let ts=0,tk=0;
     Object.values(data.sizes).forEach(v=>{ts+=v.sales;tk+=v.stock;});
     if(ts===0) return;
@@ -115,13 +124,17 @@ function calculate(sales,stock){
     const sc=tk/drr;
     const demand=sc<target?Math.ceil((target-sc)*drr):0;
 
-    if(sc<=30)b0++; else if(sc<=60)b30++; else if(sc<=120)b60++; else b120++;
+    if(sc<30)b0++; else if(sc<60)b30++; else if(sc<120)b60++; else b120++;
 
-    if(demand>0) demandRows.push({style,data,ts,tk,drr,sc,demand});
+    let remark="";
+    let cls="";
+    if(sc<30 && drr>30){ remark="High Demand"; cls="high-demand"; }
+    else if(sc>=30 && sc<45 && drr<30){ remark="Mid Demand"; cls="mid-demand"; }
+
+    if(demand>0) demandRows.push({style,data,ts,tk,drr,sc,demand,remark,cls});
     if(sc>120) overstockRows.push({style,data,ts,tk,drr,sc});
   });
 
-  /* SORT DEMAND DESC */
   demandRows.sort((a,b)=>b.demand-a.demand);
 
   renderExpandable(demandRows,demandBody,true);
@@ -140,31 +153,32 @@ function calculate(sales,stock){
   plus1Pct.innerText=total?((p1/total)*100).toFixed(1)+"%":"0%";
   plus2Pct.innerText=total?((p2/total)*100).toFixed(1)+"%":"0%";
 
-  /* SIZE CURVE */
+  /* SIZE CURVE TABLE (WIDE) */
   demandRows.forEach(r=>{
-    let curve=[];
-    Object.entries(r.data.sizes)
-      .sort((a,b)=>SIZE_ORDER.indexOf(a[0])-SIZE_ORDER.indexOf(b[0]))
-      .forEach(([z,v])=>{
-        if(v.sales>0) curve.push(`${z}:${Math.round((v.sales/r.ts)*r.demand)}`);
-      });
+    let row={};
+    SIZE_ORDER.forEach(s=>row[s]=0);
+    Object.entries(r.data.sizes).forEach(([z,v])=>{
+      row[z]=Math.round((v.sales/r.ts)*r.demand);
+    });
+
     sizeCurveBody.insertAdjacentHTML("beforeend",`
       <tr data-style="${r.style.toLowerCase()}">
-        <td>${r.style}</td><td>${r.demand}</td><td>${curve.join(", ")}</td>
+        <td>${r.style}</td>
+        <td>${r.demand}</td>
+        ${SIZE_ORDER.map(s=>`<td>${row[s]||""}</td>`).join("")}
       </tr>`);
   });
 }
 
-/* EXPANDABLE RENDER */
 function renderExpandable(rows,tbody,showDemand){
-  rows.forEach((r,i)=>{
+  rows.forEach((r)=>{
     const key="k"+Math.random().toString(36).slice(2);
     tbody.insertAdjacentHTML("beforeend",`
-      <tr data-style="${r.style.toLowerCase()}">
+      <tr class="${r.cls||""}" data-style="${r.style.toLowerCase()}">
         <td class="expand" onclick="toggle('${key}',this)">+</td>
         <td>${r.style}</td><td>${r.ts}</td><td>${r.tk}</td>
         <td>${r.drr.toFixed(2)}</td><td>${r.sc.toFixed(1)}</td>
-        ${showDemand?`<td>${r.demand}</td>`:""}
+        ${showDemand?`<td>${r.demand}</td><td>${r.remark||""}</td>`:""}
       </tr>`);
 
     Object.entries(r.data.sizes)
@@ -181,13 +195,12 @@ function renderExpandable(rows,tbody,showDemand){
             <td>${v.stock}</td>
             <td>${drrS.toFixed(2)}</td>
             <td>${scS.toFixed(1)}</td>
-            ${showDemand?`<td>${dS}</td>`:""}
+            ${showDemand?`<td>${dS}</td><td></td>`:""}
           </tr>`);
       });
   });
 }
 
-/* TOGGLE */
 window.toggle=(key,el)=>{
   const rows=document.querySelectorAll("."+key);
   const open=rows[0].style.display==="none";
@@ -195,13 +208,21 @@ window.toggle=(key,el)=>{
   el.textContent=open?"−":"+";
 };
 
-/* EXPORT */
+function toggleAll(open){
+  document.querySelectorAll(".expand").forEach(el=>{
+    const key=el.getAttribute("onclick").match(/'(.+?)'/)[1];
+    const rows=document.querySelectorAll("."+key);
+    rows.forEach(r=>r.style.display=open?"":"none");
+    el.textContent=open?"−":"+";
+  });
+}
+
 function exportExcel(){
   const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,XLSX.utils.table_to_sheet(document.getElementById("demandTable")),"Demand");
   XLSX.utils.book_append_sheet(wb,XLSX.utils.table_to_sheet(document.getElementById("overstockTable")),"Overstock");
   XLSX.utils.book_append_sheet(wb,XLSX.utils.table_to_sheet(document.getElementById("sizeCurveTable")),"Size_Curve");
-  XLSX.writeFile(wb,"Demand_Planner_V1_5.xlsx");
+  XLSX.writeFile(wb,"Demand_Planner_v1_6.xlsx");
 }
 
 });

@@ -1,46 +1,76 @@
-document.addEventListener("DOMContentLoaded", () => {
+body {
+  font-family: Arial, sans-serif;
+  background: #f4f6f8;
+  padding: 20px;
+}
 
-  console.log("Demand Planner loaded");
+.container {
+  max-width: 1200px;
+  margin: auto;
+}
 
-  const salesFile = document.getElementById("salesFile");
-  const stockFile = document.getElementById("stockFile");
-  const generateBtn = document.getElementById("generateBtn");
-  const exportBtn = document.getElementById("exportBtn");
-  const search = document.getElementById("search");
+.card {
+  background: #fff;
+  padding: 20px;
+  margin-bottom: 20px;
+  border-radius: 6px;
+}
 
-  generateBtn.addEventListener("click", () => {
-    console.log("Generate button clicked");
-    processFiles();
-  });
+.inputs {
+  display: flex;
+  gap: 20px;
+}
 
-  exportBtn.addEventListener("click", exportFullReport);
+button {
+  padding: 10px 16px;
+  background: #1a73e8;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
 
-  document.querySelectorAll(".tab-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-      document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
-      document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
-      btn.classList.add("active");
-      document.getElementById(btn.dataset.tab + "Tab").classList.add("active");
-    });
-  });
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+}
 
-  search.addEventListener("keyup", () => {
-    const q = search.value.toLowerCase();
-    document.querySelectorAll("[data-style]").forEach(r => {
-      r.style.display = r.dataset.style.toLowerCase().includes(q) ? "" : "none";
-    });
-  });
+th, td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: center;
+}
 
-  function processFiles() {
-    if (!salesFile.files.length || !stockFile.files.length) {
-      alert("Please upload both Sales and Stock files");
-      return;
-    }
-    alert("Files loaded. Processing started.");
-  }
+th {
+  background: #f1f3f4;
+}
 
-  function exportFullReport() {
-    alert("Export will be added after confirmation");
-  }
+.tabs {
+  display: flex;
+  gap: 10px;
+  margin: 15px 0;
+}
 
-});
+.tab-btn {
+  padding: 8px 14px;
+  cursor: pointer;
+}
+
+.tab-btn.active {
+  background: #1a73e8;
+  color: white;
+}
+
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+#search {
+  width: 300px;
+  padding: 8px;
+  margin-bottom: 10px;
+}

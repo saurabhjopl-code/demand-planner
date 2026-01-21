@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Demand Planner – V1.5</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <title>Demand Planner – v1.6 (LOCKED)</title>
+  <link rel="stylesheet" href="style.css" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
@@ -35,29 +35,48 @@
 
     <div class="control-actions">
       <button id="generateBtn">Generate Reports</button>
+      <button id="expandAllBtn">Expand All</button>
+      <button id="collapseAllBtn">Collapse All</button>
       <button id="exportBtn">Export Excel</button>
     </div>
   </div>
 
-  <!-- SC BAND SUMMARY -->
-  <div class="card">
-    <h3>SC Band Summary</h3>
-    <table>
-      <tr><th>Band</th><th>Styles</th></tr>
-      <tr><td>0–30</td><td id="b0">0</td></tr>
-      <tr><td>30–60</td><td id="b30">0</td></tr>
-      <tr><td>60–120</td><td id="b60">0</td></tr>
-      <tr><td>120+</td><td id="b120">0</td></tr>
-    </table>
+  <!-- STATIC SUMMARY ROW -->
+  <div class="summary-row">
+    <!-- SC BAND SUMMARY -->
+    <div class="card summary-card">
+      <h3>SC Band Summary</h3>
+      <table>
+        <tr><th>Band</th><th>Styles</th></tr>
+        <tr><td>0–30</td><td id="b0">0</td></tr>
+        <tr><td>30–60</td><td id="b30">0</td></tr>
+        <tr><td>60–120</td><td id="b60">0</td></tr>
+        <tr><td>120+</td><td id="b120">0</td></tr>
+      </table>
+    </div>
+
+    <!-- SIZE ANALYSIS (STATIC, NO TAB) -->
+    <div class="card summary-card">
+      <h3>Size Analysis</h3>
+      <table>
+        <tr><th>Category</th><th>Units</th><th>% Share</th></tr>
+        <tr><td>Normal (S–XXL)</td><td id="normalSales">0</td><td id="normalPct">0%</td></tr>
+        <tr><td>Plus1 (3XL–6XL)</td><td id="plus1Sales">0</td><td id="plus1Pct">0%</td></tr>
+        <tr><td>Plus2 (7XL–10XL)</td><td id="plus2Sales">0</td><td id="plus2Pct">0%</td></tr>
+      </table>
+    </div>
   </div>
 
-  <input id="search" placeholder="Search style">
+  <!-- SEARCH -->
+  <div class="search-wrap">
+    <input id="search" placeholder="Search style">
+    <button id="clearSearch">✕</button>
+  </div>
 
   <!-- TABS -->
   <div class="tabs">
     <button class="tab-btn active" data-tab="demand">Demand</button>
     <button class="tab-btn" data-tab="overstock">Overstock</button>
-    <button class="tab-btn" data-tab="sizeanalysis">Size Analysis</button>
     <button class="tab-btn" data-tab="sizecurve">Size Curve</button>
   </div>
 
@@ -68,7 +87,7 @@
         <tr>
           <th></th>
           <th>Style / SKU</th><th>Sales</th><th>Stock</th>
-          <th>DRR</th><th>SC</th><th>Demand</th>
+          <th>DRR</th><th>SC</th><th>Demand</th><th>Remarks</th>
         </tr>
       </thead>
       <tbody></tbody>
@@ -89,28 +108,26 @@
     </table>
   </div>
 
-  <!-- SIZE ANALYSIS -->
-  <div id="sizeanalysisTab" class="tab-content">
-    <table>
-      <tr><th>Category</th><th>Units</th><th>% Share</th></tr>
-      <tr><td>Normal (S–XXL)</td><td id="normalSales">0</td><td id="normalPct">0%</td></tr>
-      <tr><td>Plus1 (3XL–6XL)</td><td id="plus1Sales">0</td><td id="plus1Pct">0%</td></tr>
-      <tr><td>Plus2 (7XL–10XL)</td><td id="plus2Sales">0</td><td id="plus2Pct">0%</td></tr>
-    </table>
-  </div>
-
   <!-- SIZE CURVE -->
   <div id="sizecurveTab" class="tab-content">
     <div class="help-box">
       <b>How to read this</b><br>
       • Style Demand = units needed to reach target SC<br>
-      • Allocation based on actual size sales mix<br>
-      • Sizes with higher stock get lower allocation
+      • Allocation based on real size sales mix<br>
+      • “FS” means Free Size
     </div>
+
     <table id="sizeCurveTable">
       <thead>
         <tr>
-          <th>Style</th><th>Style Demand</th><th>Recommended Buy (Size:Qty)</th>
+          <th rowspan="2">Style</th>
+          <th rowspan="2">Style Demand</th>
+          <th colspan="12">Recommended Buy (Qty)</th>
+        </tr>
+        <tr>
+          <th>FS</th><th>S</th><th>M</th><th>L</th><th>XL</th><th>XXL</th>
+          <th>3XL</th><th>4XL</th><th>5XL</th><th>6XL</th>
+          <th>7XL</th><th>8XL</th><th>9XL</th><th>10XL</th>
         </tr>
       </thead>
       <tbody></tbody>

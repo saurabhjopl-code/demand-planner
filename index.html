@@ -11,12 +11,11 @@
 <div class="container">
   <h1>Demand Planning Tool</h1>
 
-  <!-- INPUTS -->
   <div class="card">
-    <label>Sales File</label>
+    <label>Sales File (SKU, Quantity)</label>
     <input type="file" id="salesFile">
 
-    <label>Stock File</label>
+    <label>Stock File (SKU, Available Stock)</label>
     <input type="file" id="stockFile">
 
     <div class="inputs">
@@ -25,19 +24,18 @@
         <input type="number" id="salesDays" value="30">
       </div>
       <div>
-        <label>Target Stock Cover</label>
+        <label>Target SC</label>
         <input type="number" id="targetSC" value="45">
       </div>
     </div>
 
-    <button id="generateBtn" type="button">Generate Reports</button>
+    <button id="generateBtn">Generate Reports</button>
   </div>
 
-  <!-- SC BAND SUMMARY -->
   <div class="card">
-    <h3>Stock Cover Band Summary</h3>
+    <h3>SC Band Summary</h3>
     <table>
-      <tr><th>SC Band</th><th>Styles</th></tr>
+      <tr><th>Band</th><th>Styles</th></tr>
       <tr><td>0–30</td><td id="b0">0</td></tr>
       <tr><td>30–60</td><td id="b30">0</td></tr>
       <tr><td>60–120</td><td id="b60">0</td></tr>
@@ -45,22 +43,13 @@
     </table>
   </div>
 
-  <!-- SEARCH + EXPORT -->
-  <div class="actions">
-    <input id="search" placeholder="Search style">
-    <button id="exportBtn" type="button">Export Full Report</button>
-  </div>
+  <input id="search" placeholder="Search style">
 
-  <!-- TABS -->
   <div class="tabs">
     <button class="tab-btn active" data-tab="demand">Demand</button>
     <button class="tab-btn" data-tab="overstock">Overstock</button>
-    <button class="tab-btn" data-tab="sizemix">Size Mix</button>
-    <button class="tab-btn" data-tab="sizeanalysis">Size Analysis</button>
-    <button class="tab-btn" data-tab="sizecurve">Size Curve</button>
   </div>
 
-  <!-- TABS CONTENT -->
   <div id="demandTab" class="tab-content active">
     <table id="demandTable">
       <thead>
@@ -80,37 +69,6 @@
           <th>Style</th><th>Sales</th><th>Stock</th>
           <th>DRR</th><th>SC</th>
         </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
-
-  <div id="sizemixTab" class="tab-content">
-    <table id="sizeMixTable">
-      <thead>
-        <tr>
-          <th>Style</th><th>Total Sales</th>
-          <th>Normal %</th><th>Plus1 %</th><th>Plus2 %</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
-
-  <div id="sizeanalysisTab" class="tab-content">
-    <table>
-      <tr><th>Category</th><th>Units</th><th>%</th></tr>
-      <tr><td>Normal</td><td id="normalSales">0</td><td id="normalPct">0%</td></tr>
-      <tr><td>Plus1</td><td id="plus1Sales">0</td><td id="plus1Pct">0%</td></tr>
-      <tr><td>Plus2</td><td id="plus2Sales">0</td><td id="plus2Pct">0%</td></tr>
-    </table>
-  </div>
-
-  <div id="sizecurveTab" class="tab-content">
-    <p><b>How to read:</b> Demand is split by size sales share and adjusted for stock cover.</p>
-    <table id="sizeCurveTable">
-      <thead>
-        <tr><th>Style</th><th>Demand</th><th>Recommended Buy</th></tr>
       </thead>
       <tbody></tbody>
     </table>

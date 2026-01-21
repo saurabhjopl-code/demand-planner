@@ -30,12 +30,12 @@
       </div>
     </div>
 
-    <button id="generateBtn">Generate Reports</button>
+    <button id="generateBtn" type="button">Generate Reports</button>
   </div>
 
   <!-- SC BAND SUMMARY -->
   <div class="card">
-    <h2>📊 Stock Cover Band Summary (Style Level)</h2>
+    <h3>Stock Cover Band Summary</h3>
     <table>
       <tr><th>SC Band</th><th>Styles</th></tr>
       <tr><td>0–30</td><td id="b0">0</td></tr>
@@ -47,94 +47,73 @@
 
   <!-- SEARCH + EXPORT -->
   <div class="actions">
-    <input id="search" placeholder="Search style (all tabs)">
-    <button onclick="exportFullReport()">📤 Export Full Report</button>
+    <input id="search" placeholder="Search style">
+    <button id="exportBtn" type="button">Export Full Report</button>
   </div>
 
   <!-- TABS -->
   <div class="tabs">
-    <button class="tab-btn active" data-tab="demand">📊 Demand</button>
-    <button class="tab-btn" data-tab="overstock">📦 Overstock</button>
-    <button class="tab-btn" data-tab="sizemix">📐 Size Mix %</button>
-    <button class="tab-btn" data-tab="sizeanalysis">📊 Size Analysis</button>
-    <button class="tab-btn" data-tab="sizecurve">🧮 Size Curve</button>
+    <button class="tab-btn active" data-tab="demand">Demand</button>
+    <button class="tab-btn" data-tab="overstock">Overstock</button>
+    <button class="tab-btn" data-tab="sizemix">Size Mix</button>
+    <button class="tab-btn" data-tab="sizeanalysis">Size Analysis</button>
+    <button class="tab-btn" data-tab="sizecurve">Size Curve</button>
   </div>
 
-  <!-- DEMAND -->
+  <!-- TABS CONTENT -->
   <div id="demandTab" class="tab-content active">
-    <div class="card">
-      <table id="demandTable">
-        <thead>
-          <tr>
-            <th>Style</th><th>Sales</th><th>Stock</th>
-            <th>DRR</th><th>SC</th><th>Demand</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
+    <table id="demandTable">
+      <thead>
+        <tr>
+          <th>Style</th><th>Sales</th><th>Stock</th>
+          <th>DRR</th><th>SC</th><th>Demand</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
   </div>
 
-  <!-- OVERSTOCK -->
   <div id="overstockTab" class="tab-content">
-    <div class="card">
-      <table id="overstockTable">
-        <thead>
-          <tr>
-            <th>Style</th><th>Sales</th><th>Stock</th>
-            <th>DRR</th><th>SC</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
+    <table id="overstockTable">
+      <thead>
+        <tr>
+          <th>Style</th><th>Sales</th><th>Stock</th>
+          <th>DRR</th><th>SC</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
   </div>
 
-  <!-- SIZE MIX -->
   <div id="sizemixTab" class="tab-content">
-    <div class="card">
-      <table id="sizeMixTable">
-        <thead>
-          <tr>
-            <th>Style</th><th>Total Sales</th>
-            <th>Normal %</th><th>Plus1 %</th><th>Plus2 %</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
+    <table id="sizeMixTable">
+      <thead>
+        <tr>
+          <th>Style</th><th>Total Sales</th>
+          <th>Normal %</th><th>Plus1 %</th><th>Plus2 %</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
   </div>
 
-  <!-- SIZE ANALYSIS -->
   <div id="sizeanalysisTab" class="tab-content">
-    <div class="card">
-      <table>
-        <tr><th>Category</th><th>Units</th><th>% Share</th></tr>
-        <tr><td>Normal (S–XXL)</td><td id="normalSales">0</td><td id="normalPct">0%</td></tr>
-        <tr><td>Plus1 (3XL–6XL)</td><td id="plus1Sales">0</td><td id="plus1Pct">0%</td></tr>
-        <tr><td>Plus2 (7XL–10XL)</td><td id="plus2Sales">0</td><td id="plus2Pct">0%</td></tr>
-      </table>
-    </div>
+    <table>
+      <tr><th>Category</th><th>Units</th><th>%</th></tr>
+      <tr><td>Normal</td><td id="normalSales">0</td><td id="normalPct">0%</td></tr>
+      <tr><td>Plus1</td><td id="plus1Sales">0</td><td id="plus1Pct">0%</td></tr>
+      <tr><td>Plus2</td><td id="plus2Sales">0</td><td id="plus2Pct">0%</td></tr>
+    </table>
   </div>
 
-  <!-- SIZE CURVE -->
   <div id="sizecurveTab" class="tab-content">
-    <div class="card">
-      <h3>How to read this</h3>
-      <p>
-        This recommends how many units to buy per size using real sales mix
-        and current stock cover. Use it directly for PO creation.
-      </p>
-
-      <table id="sizeCurveTable">
-        <thead>
-          <tr>
-            <th>Style</th><th>Style Demand</th><th>Recommended Buy</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
+    <p><b>How to read:</b> Demand is split by size sales share and adjusted for stock cover.</p>
+    <table id="sizeCurveTable">
+      <thead>
+        <tr><th>Style</th><th>Demand</th><th>Recommended Buy</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
   </div>
 
 </div>

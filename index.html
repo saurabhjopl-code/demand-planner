@@ -11,26 +11,26 @@
 <div class="container">
   <h1>Demand Planning Tool</h1>
 
-  <!-- CONTROL BAR -->
+  <!-- ================= CONTROL BAR ================= -->
   <div class="card control-bar">
     <div class="control-group">
       <label>Sales File</label>
-      <input type="file" id="salesFile">
+      <input type="file" id="salesFile" />
     </div>
 
     <div class="control-group">
       <label>Stock File</label>
-      <input type="file" id="stockFile">
+      <input type="file" id="stockFile" />
     </div>
 
     <div class="control-group small">
       <label>Sales Days</label>
-      <input type="number" id="salesDays" value="30">
+      <input type="number" id="salesDays" value="30" />
     </div>
 
     <div class="control-group small">
       <label>Target SC</label>
-      <input type="number" id="targetSC" value="45">
+      <input type="number" id="targetSC" value="45" />
     </div>
 
     <div class="control-actions">
@@ -41,80 +41,135 @@
     </div>
   </div>
 
-  <!-- STATIC SUMMARY ROW -->
+  <!-- ================= SUMMARY ROW ================= -->
   <div class="summary-row">
+
     <!-- SC BAND SUMMARY -->
     <div class="card summary-card">
       <h3>SC Band Summary</h3>
       <table>
-        <tr><th>Band</th><th>Styles</th></tr>
-        <tr><td>0–30</td><td id="b0">0</td></tr>
-        <tr><td>30–60</td><td id="b30">0</td></tr>
-        <tr><td>60–120</td><td id="b60">0</td></tr>
-        <tr><td>120+</td><td id="b120">0</td></tr>
+        <thead>
+          <tr>
+            <th>SC Band</th>
+            <th>Styles</th>
+            <th>Total Units Sold</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>0–30</td>
+            <td id="b0">0</td>
+            <td id="b0u">0</td>
+          </tr>
+          <tr>
+            <td>30–60</td>
+            <td id="b30">0</td>
+            <td id="b30u">0</td>
+          </tr>
+          <tr>
+            <td>60–120</td>
+            <td id="b60">0</td>
+            <td id="b60u">0</td>
+          </tr>
+          <tr>
+            <td>120+</td>
+            <td id="b120">0</td>
+            <td id="b120u">0</td>
+          </tr>
+        </tbody>
       </table>
     </div>
 
-    <!-- SIZE ANALYSIS (STATIC, NO TAB) -->
+    <!-- SIZE ANALYSIS (STATIC) -->
     <div class="card summary-card">
       <h3>Size Analysis</h3>
       <table>
-        <tr><th>Category</th><th>Units</th><th>% Share</th></tr>
-        <tr><td>Normal (S–XXL)</td><td id="normalSales">0</td><td id="normalPct">0%</td></tr>
-        <tr><td>Plus1 (3XL–6XL)</td><td id="plus1Sales">0</td><td id="plus1Pct">0%</td></tr>
-        <tr><td>Plus2 (7XL–10XL)</td><td id="plus2Sales">0</td><td id="plus2Pct">0%</td></tr>
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th>Units</th>
+            <th>% Share</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Normal (S–XXL)</td>
+            <td id="normalSales">0</td>
+            <td id="normalPct">0%</td>
+          </tr>
+          <tr>
+            <td>Plus1 (3XL–6XL)</td>
+            <td id="plus1Sales">0</td>
+            <td id="plus1Pct">0%</td>
+          </tr>
+          <tr>
+            <td>Plus2 (7XL–10XL)</td>
+            <td id="plus2Sales">0</td>
+            <td id="plus2Pct">0%</td>
+          </tr>
+        </tbody>
       </table>
     </div>
+
   </div>
 
-  <!-- SEARCH -->
+  <!-- ================= SEARCH ================= -->
   <div class="search-wrap">
-    <input id="search" placeholder="Search style">
+    <input type="text" id="search" placeholder="Search style" />
     <button id="clearSearch">✕</button>
   </div>
 
-  <!-- TABS -->
+  <!-- ================= TABS ================= -->
   <div class="tabs">
     <button class="tab-btn active" data-tab="demand">Demand</button>
     <button class="tab-btn" data-tab="overstock">Overstock</button>
     <button class="tab-btn" data-tab="sizecurve">Size Curve</button>
   </div>
 
-  <!-- DEMAND -->
+  <!-- ================= DEMAND TAB ================= -->
   <div id="demandTab" class="tab-content active">
     <table id="demandTable">
       <thead>
         <tr>
           <th></th>
-          <th>Style / SKU</th><th>Sales</th><th>Stock</th>
-          <th>DRR</th><th>SC</th><th>Demand</th><th>Remarks</th>
+          <th>Style / SKU</th>
+          <th>Sales</th>
+          <th>Stock</th>
+          <th>DRR</th>
+          <th>SC</th>
+          <th>Demand</th>
+          <th>Remarks</th>
         </tr>
       </thead>
       <tbody></tbody>
     </table>
   </div>
 
-  <!-- OVERSTOCK -->
+  <!-- ================= OVERSTOCK TAB ================= -->
   <div id="overstockTab" class="tab-content">
     <table id="overstockTable">
       <thead>
         <tr>
           <th></th>
-          <th>Style / SKU</th><th>Sales</th><th>Stock</th>
-          <th>DRR</th><th>SC</th>
+          <th>Style / SKU</th>
+          <th>Sales</th>
+          <th>Stock</th>
+          <th>DRR</th>
+          <th>SC</th>
         </tr>
       </thead>
       <tbody></tbody>
     </table>
   </div>
 
-  <!-- SIZE CURVE -->
+  <!-- ================= SIZE CURVE TAB ================= -->
   <div id="sizecurveTab" class="tab-content">
+
     <div class="help-box">
-      <b>How to read this</b><br>
-      • Style Demand = units needed to reach target SC<br>
-      • Allocation based on real size sales mix<br>
-      • “FS” means Free Size
+      <strong>How to read this</strong><br />
+      • Style Demand = units required to reach target SC<br />
+      • Allocation is based on real size sales mix<br />
+      • FS means Free Size
     </div>
 
     <table id="sizeCurveTable">
@@ -122,12 +177,23 @@
         <tr>
           <th rowspan="2">Style</th>
           <th rowspan="2">Style Demand</th>
-          <th colspan="12">Recommended Buy (Qty)</th>
+          <th colspan="14">Recommended Buy (Qty)</th>
         </tr>
         <tr>
-          <th>FS</th><th>S</th><th>M</th><th>L</th><th>XL</th><th>XXL</th>
-          <th>3XL</th><th>4XL</th><th>5XL</th><th>6XL</th>
-          <th>7XL</th><th>8XL</th><th>9XL</th><th>10XL</th>
+          <th>FS</th>
+          <th>S</th>
+          <th>M</th>
+          <th>L</th>
+          <th>XL</th>
+          <th>XXL</th>
+          <th>3XL</th>
+          <th>4XL</th>
+          <th>5XL</th>
+          <th>6XL</th>
+          <th>7XL</th>
+          <th>8XL</th>
+          <th>9XL</th>
+          <th>10XL</th>
         </tr>
       </thead>
       <tbody></tbody>

@@ -1,58 +1,61 @@
 document.addEventListener("DOMContentLoaded", () => {
 
-/* ================= CONSTANTS ================= */
-const SIZE_ORDER = ["FS","S","M","L","XL","XXL","3XL","4XL","5XL","6XL","7XL","8XL","9XL","10XL"];
+const SIZE_ORDER=["FS","S","M","L","XL","XXL","3XL","4XL","5XL","6XL","7XL","8XL","9XL","10XL"];
+const NORMAL=new Set(["S","M","L","XL","XXL"]);
+const PLUS1=new Set(["3XL","4XL","5XL","6XL"]);
+const PLUS2=new Set(["7XL","8XL","9XL","10XL"]);
 
-const CATEGORY = s =>
-  s === "FS" ? "Free Size" :
-  ["S","M","L","XL","XXL"].includes(s) ? "Normal" :
-  ["3XL","4XL","5XL","6XL"].includes(s) ? "Plus 1" : "Plus 2";
+const salesFile=document.getElementById("salesFile");
+const stockFile=document.getElementById("stockFile");
+const salesDays=document.getElementById("salesDays");
+const targetSC=document.getElementById("targetSC");
+const generateBtn=document.getElementById("generateBtn");
+const exportBtn=document.getElementById("exportBtn");
+const expandAllBtn=document.getElementById("expandAllBtn");
+const collapseAllBtn=document.getElementById("collapseAllBtn");
 
-/* ================= DOM ================= */
-const salesFile = document.getElementById("salesFile");
-const stockFile = document.getElementById("stockFile");
-const salesDays = document.getElementById("salesDays");
-const targetSC = document.getElementById("targetSC");
+const search=document.getElementById("search");
+const clearSearch=document.getElementById("clearSearch");
 
-const generateBtn = document.getElementById("generateBtn");
-const expandAllBtn = document.getElementById("expandAllBtn");
-const collapseAllBtn = document.getElementById("collapseAllBtn");
+const demandBody=document.querySelector("#demandTable tbody");
+const overstockBody=document.querySelector("#overstockTable tbody");
+const sizeCurveBody=document.querySelector("#sizeCurveTable tbody");
 
-const search = document.getElementById("search");
-const clearSearch = document.getElementById("clearSearch");
+const normalSales=document.getElementById("normalSales");
+const plus1Sales=document.getElementById("plus1Sales");
+const plus2Sales=document.getElementById("plus2Sales");
+const normalPct=document.getElementById("normalPct");
+const plus1Pct=document.getElementById("plus1Pct");
+const plus2Pct=document.getElementById("plus2Pct");
 
-const demandBody = document.querySelector("#demandTable tbody");
-const overstockBody = document.querySelector("#overstockTable tbody");
-const sizeCurveBody = document.querySelector("#sizeCurveTable tbody");
-const brokenBody = document.querySelector("#brokenTable tbody");
-const sizeSummaryBody = document.querySelector("#sizeSummaryTable tbody");
+generateBtn.onclick=generate;
+exportBtn.onclick=exportExcel;
 
-/* SC Band */
-const b0=document.getElementById("b0"), b0u=document.getElementById("b0u");
-const b30=document.getElementById("b30"), b30u=document.getElementById("b30u");
-const b60=document.getElementById("b60"), b60u=document.getElementById("b60u");
-const b120=document.getElementById("b120"), b120u=document.getElementById("b120u");
+expandAllBtn.onclick=()=>toggleAll(true);
+collapseAllBtn.onclick=()=>toggleAll(false);
 
-/* ================= TAB SWITCH ================= */
-document.querySelectorAll(".tab-btn").forEach(btn=>{
-  btn.onclick=()=>{
-    document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
-    document.querySelectorAll(".tab-content").forEach(c=>c.classList.remove("active"));
-    btn.classList.add("active");
-    document.getElementById(btn.dataset.tab+"Tab").classList.add("active");
+clearSearch.onclick=()=>{
+  search.value="";
+  filter("");
+};
+
+document.querySelectorAll(".tab-btn").forEach(b=>{
+  b.onclick=()=>{
+    document.querySelectorAll(".tab-btn").forEach(x=>x.classList.remove("active"));
+    document.querySelectorAll(".tab-content").forEach(x=>x.classList.remove("active"));
+    b.classList.add("active");
+    document.getElementById(b.dataset.tab+"Tab").classList.add("active");
   };
 });
 
-/* ================= SEARCH ================= */
-search.onkeyup=()=>{
-  const q=search.value.toLowerCase();
+search.onkeyup=()=>filter(search.value.toLowerCase());
+
+function filter(q){
   document.querySelectorAll("[data-style]").forEach(r=>{
     r.style.display=r.dataset.style.includes(q)?"":"none";
   });
-};
-clearSearch.onclick=()=>{search.value="";search.onkeyup();};
+}
 
-/* ================= FILE READ ================= */
 function readFile(file){
   return new Promise(res=>{
     const fr=new FileReader();
@@ -63,167 +66,194 @@ function readFile(file){
     fr.readAsArrayBuffer(file);
   });
 }
-const splitSKU=sku=>{
-  if(!sku) return ["","FS"];
-  const p=sku.split("-");
-  return [p[0],p[1]||"FS"];
-};
 
-/* ================= GENERATE (FIXED) ================= */
-generateBtn.onclick=()=>{
+function normalizeSKU(sku){
+  if(!sku) return {style:"",size:"FS"};
+  const p=sku.split("-");
+  if(p.length<2||!p[1]||p[1]==="undefined") return {style:p[0],size:"FS"};
+  return {style:p[0],size:p[1]};
+}
+
+function generate(){
   if(!salesFile.files[0]||!stockFile.files[0]){
-    alert("Upload Sales & Stock files");
+    alert("Upload both files");
     return;
   }
+  Promise.all([readFile(salesFile.files[0]),readFile(stockFile.files[0])])
+    .then(([sales,stock])=>calculate(sales,stock));
+}
 
-  Promise.all([
-    readFile(salesFile.files[0]),
-    readFile(stockFile.files[0]),
-    fetch("data/sizes.xlsx")
-      .then(r=>r.ok ? r.arrayBuffer() : Promise.reject())
-      .then(b=>XLSX.read(b,{type:"array"}))
-      .then(w=>XLSX.utils.sheet_to_json(w.Sheets[w.SheetNames[0]]))
-      .catch(()=>[])   // ✅ IMPORTANT FIX
-  ]).then(([sales,stock,sizeMaster])=>{
-    calculate(sales,stock,sizeMaster);
-  });
-};
-
-/* ================= CALCULATE ================= */
-function calculate(sales,stock,sizeMaster){
-
-  /* RESET */
+function calculate(sales,stock){
   demandBody.innerHTML="";
   overstockBody.innerHTML="";
   sizeCurveBody.innerHTML="";
-  brokenBody.innerHTML="";
-  sizeSummaryBody.innerHTML="";
 
-  let bandCount={b0:0,b30:0,b60:0,b120:0};
-  let bandUnits={b0:0,b30:0,b60:0,b120:0};
+  let b0=0,b30=0,b60=0,b120=0;
+  let n=0,p1=0,p2=0;
 
-  const styleMap={}, sizeMap={}, sizeRef={};
+  const map={};
+  const sd=+salesDays.value;
+  const target=+targetSC.value;
 
-  sizeMaster.forEach(r=>sizeRef[r["Style ID"]]=r["Total Sizes"]);
-
-  /* SALES */
   sales.forEach(r=>{
-    const [style,size]=splitSKU(r.SKU);
-    sizeMap[size]??={sold:0,stock:0};
-    sizeMap[size].sold+=+r.Quantity;
-
-    styleMap[style]??={sold:0,stock:0,sizes:{}};
-    styleMap[style].sold+=+r.Quantity;
-    styleMap[style].sizes[size]=(styleMap[style].sizes[size]||0)+r.Quantity;
+    const {style,size}=normalizeSKU(r.SKU);
+    map[style]??={sizes:{}};
+    map[style].sizes[size]??={sales:0,stock:0};
+    map[style].sizes[size].sales+=+r.Quantity;
+    if(NORMAL.has(size))n+=+r.Quantity;
+    if(PLUS1.has(size))p1+=+r.Quantity;
+    if(PLUS2.has(size))p2+=+r.Quantity;
   });
 
-  /* STOCK */
   stock.forEach(r=>{
-    const [style,size]=splitSKU(r.SKU);
-    sizeMap[size]??={sold:0,stock:0};
-    sizeMap[size].stock+=+r["Available Stock"];
-
-    styleMap[style]??={sold:0,stock:0,sizes:{}};
-    styleMap[style].stock+=+r["Available Stock"];
+    const {style,size}=normalizeSKU(r.SKU);
+    map[style]??={sizes:{}};
+    map[style].sizes[size]??={sales:0,stock:0};
+    map[style].sizes[size].stock+=+r["Available Stock"];
   });
 
-  /* SIZE SUMMARY */
-  const totalSold = Object.values(sizeMap).reduce((a,b)=>a+b.sold,0);
+  let demandRows=[];
+  let overstockRows=[];
 
-  const categoryTotals={};
-  SIZE_ORDER.forEach(s=>{
-    const cat=CATEGORY(s);
-    categoryTotals[cat]=(categoryTotals[cat]||0)+(sizeMap[s]?.sold||0);
+  Object.entries(map).forEach(([style,data])=>{
+    let ts=0,tk=0;
+    Object.values(data.sizes).forEach(v=>{ts+=v.sales;tk+=v.stock;});
+    if(ts===0) return;
+
+    const drr=ts/sd;
+    const sc=tk/drr;
+    const demand=sc<target?Math.ceil((target-sc)*drr):0;
+
+    if(sc<30)b0++; else if(sc<60)b30++; else if(sc<120)b60++; else b120++;
+
+    /* -------- DEMAND COLOR LOGIC -------- */
+    let dClass="", dRemark="";
+
+    if(ts < 50){
+      dRemark="Low Sale Units";
+    } else {
+      if(drr>20 && sc<20){
+        dClass="green"; dRemark="High Demand";
+      } else if(drr>10 && drr<20 && sc<30 && sc>10){
+        dClass="amber"; dRemark="Mid Demand";
+      } else if(drr<10 && sc<10){
+        dClass="red"; dRemark="Low Demand";
+      }
+    }
+
+    /* -------- OVERSTOCK COLOR LOGIC -------- */
+    let oClass="", oRemark="";
+
+    if(ts < 50 && sc > 90){
+      oClass="red"; oRemark="High Risk";
+    } else {
+      if(drr>30){
+        oClass="green"; oRemark="Low Risk";
+      } else if(drr<30 && drr>10){
+        oClass="amber"; oRemark="Mid Risk";
+      } else if(drr<10){
+        oClass="red"; oRemark="High Risk";
+      }
+    }
+
+    if(demand>0) demandRows.push({style,data,ts,tk,drr,sc,demand,dClass,dRemark});
+    if(sc>120) overstockRows.push({style,data,ts,tk,drr,sc,oClass,oRemark});
   });
 
-  const printed={};
-  SIZE_ORDER.forEach(s=>{
-    const d=sizeMap[s]||{sold:0,stock:0};
-    const cat=CATEGORY(s);
-    const catShare=printed[cat]?"":(totalSold?((categoryTotals[cat]/totalSold)*100).toFixed(1)+"%":"0%");
-    printed[cat]=true;
+  demandRows.sort((a,b)=>b.demand-a.demand);
 
-    sizeSummaryBody.insertAdjacentHTML("beforeend",`
-      <tr>
-        <td>${s}</td>
-        <td>${cat}</td>
-        <td>${d.sold}</td>
-        <td>${totalSold?((d.sold/totalSold)*100).toFixed(1):"0"}%</td>
-        <td>${catShare}</td>
-        <td>${d.stock}</td>
+  renderExpandable(demandRows,demandBody,true);
+  renderExpandable(overstockRows,overstockBody,false);
+
+  document.getElementById("b0").innerText=b0;
+  document.getElementById("b30").innerText=b30;
+  document.getElementById("b60").innerText=b60;
+  document.getElementById("b120").innerText=b120;
+
+  const total=n+p1+p2;
+  normalSales.innerText=n;
+  plus1Sales.innerText=p1;
+  plus2Sales.innerText=p2;
+  normalPct.innerText=total?((n/total)*100).toFixed(1)+"%":"0%";
+  plus1Pct.innerText=total?((p1/total)*100).toFixed(1)+"%":"0%";
+  plus2Pct.innerText=total?((p2/total)*100).toFixed(1)+"%":"0%";
+
+  /* SIZE CURVE */
+  demandRows.forEach(r=>{
+    let row={};
+    SIZE_ORDER.forEach(s=>row[s]=0);
+    Object.entries(r.data.sizes).forEach(([z,v])=>{
+      row[z]=Math.round((v.sales/r.ts)*r.demand);
+    });
+
+    sizeCurveBody.insertAdjacentHTML("beforeend",`
+      <tr data-style="${r.style.toLowerCase()}">
+        <td>${r.style}</td>
+        <td>${r.demand}</td>
+        ${SIZE_ORDER.map(s=>`<td>${row[s]||""}</td>`).join("")}
       </tr>`);
   });
+}
 
-  /* DEMAND / OVERSTOCK / SIZE CURVE (UNCHANGED) */
-  Object.entries(styleMap).forEach(([style,d])=>{
-    if(d.sold===0) return;
+function renderExpandable(rows,tbody,isDemand){
+  rows.forEach(r=>{
+    const key="k"+Math.random().toString(36).slice(2);
+    const cls=isDemand?r.dClass:r.oClass;
+    const remark=isDemand?r.dRemark:r.oRemark;
 
-    const drr=d.sold/+salesDays.value;
-    const sc=d.stock/drr;
-    const demand=sc<+targetSC.value?Math.ceil((+targetSC.value-sc)*drr):0;
+    tbody.insertAdjacentHTML("beforeend",`
+      <tr class="${cls}" data-style="${r.style.toLowerCase()}">
+        <td class="expand" onclick="toggle('${key}',this)">+</td>
+        <td>${r.style}</td>
+        <td>${r.ts}</td>
+        <td>${r.tk}</td>
+        <td>${r.drr.toFixed(2)}</td>
+        <td>${r.sc.toFixed(1)}</td>
+        ${isDemand?`<td>${r.demand}</td><td>${remark||""}</td>`:""}
+      </tr>`);
 
-    if(sc<30){bandCount.b0++;bandUnits.b0+=d.sold;}
-    else if(sc<60){bandCount.b30++;bandUnits.b30+=d.sold;}
-    else if(sc<120){bandCount.b60++;bandUnits.b60+=d.sold;}
-    else {bandCount.b120++;bandUnits.b120+=d.sold;}
-
-    if(demand>0){
-      demandBody.insertAdjacentHTML("beforeend",`
-        <tr data-style="${style.toLowerCase()}">
-          <td></td><td>${style}</td><td>${d.sold}</td><td>${d.stock}</td>
-          <td>${drr.toFixed(2)}</td><td>${sc.toFixed(1)}</td><td>${demand}</td><td></td>
-        </tr>`);
-    }
-
-    if(sc>120){
-      overstockBody.insertAdjacentHTML("beforeend",`
-        <tr data-style="${style.toLowerCase()}">
-          <td></td><td>${style}</td><td>${d.sold}</td><td>${d.stock}</td>
-          <td>${drr.toFixed(2)}</td><td>${sc.toFixed(1)}</td>
-        </tr>`);
-    }
-
-    if(demand>0){
-      const row={};
-      SIZE_ORDER.forEach(s=>row[s]=0);
-      Object.entries(d.sizes).forEach(([z,v])=>{
-        row[z]=Math.round((v/d.sold)*demand);
+    Object.entries(r.data.sizes)
+      .sort((a,b)=>SIZE_ORDER.indexOf(a[0])-SIZE_ORDER.indexOf(b[0]))
+      .forEach(([z,v])=>{
+        const drrS=v.sales/(+salesDays.value);
+        const scS=drrS?v.stock/drrS:0;
+        const dS=(isDemand&&scS<+targetSC.value)?Math.ceil((+targetSC.value-scS)*drrS):"";
+        tbody.insertAdjacentHTML("beforeend",`
+          <tr class="sub-row ${key}" style="display:none" data-style="${r.style.toLowerCase()}">
+            <td></td>
+            <td>${r.style}-${z}</td>
+            <td>${v.sales}</td>
+            <td>${v.stock}</td>
+            <td>${drrS.toFixed(2)}</td>
+            <td>${scS.toFixed(1)}</td>
+            ${isDemand?`<td>${dS}</td><td></td>`:""}
+          </tr>`);
       });
-      sizeCurveBody.insertAdjacentHTML("beforeend",`
-        <tr>
-          <td>${style}</td><td>${demand}</td>
-          ${SIZE_ORDER.map(s=>`<td>${row[s]||""}</td>`).join("")}
-        </tr>`);
-    }
   });
+}
 
-  b0.innerText=bandCount.b0; b0u.innerText=bandUnits.b0;
-  b30.innerText=bandCount.b30; b30u.innerText=bandUnits.b30;
-  b60.innerText=bandCount.b60; b60u.innerText=bandUnits.b60;
-  b120.innerText=bandCount.b120; b120u.innerText=bandUnits.b120;
+window.toggle=(key,el)=>{
+  const rows=document.querySelectorAll("."+key);
+  const open=rows[0].style.display==="none";
+  rows.forEach(r=>r.style.display=open?"":"none");
+  el.textContent=open?"−":"+";
+};
 
-  /* BROKEN SIZE */
-  Object.entries(styleMap)
-    .filter(([s,d])=>sizeRef[s] && d.sold>=30)
-    .map(([s,d])=>{
-      const broken=Object.entries(d.sizes)
-        .filter(([z])=>(sizeMap[z]?.stock||0)<10)
-        .map(([z])=>z);
-      return {s,d,broken};
-    })
-    .filter(x=>x.broken.length>1)
-    .sort((a,b)=>b.d.sold-a.d.sold||b.broken.length-a.broken.length)
-    .forEach(x=>{
-      brokenBody.insertAdjacentHTML("beforeend",`
-        <tr>
-          <td>${x.s}</td>
-          <td>${sizeRef[x.s]||""}</td>
-          <td>${x.broken.length}</td>
-          <td>${x.broken.join(", ")}</td>
-          <td>${x.d.sold}</td>
-          <td>${x.d.stock}</td>
-        </tr>`);
-    });
+function toggleAll(open){
+  document.querySelectorAll(".expand").forEach(el=>{
+    const key=el.getAttribute("onclick").match(/'(.+?)'/)[1];
+    const rows=document.querySelectorAll("."+key);
+    rows.forEach(r=>r.style.display=open?"":"none");
+    el.textContent=open?"−":"+";
+  });
+}
+
+function exportExcel(){
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.table_to_sheet(document.getElementById("demandTable")),"Demand");
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.table_to_sheet(document.getElementById("overstockTable")),"Overstock");
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.table_to_sheet(document.getElementById("sizeCurveTable")),"Size_Curve");
+  XLSX.writeFile(wb,"Demand_Planner_v1_6.xlsx");
 }
 
 });

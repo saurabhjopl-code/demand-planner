@@ -69,19 +69,21 @@ const splitSKU=sku=>{
   return [p[0],p[1]||"FS"];
 };
 
-/* ================= GENERATE ================= */
+/* ================= GENERATE (FIXED) ================= */
 generateBtn.onclick=()=>{
   if(!salesFile.files[0]||!stockFile.files[0]){
     alert("Upload Sales & Stock files");
     return;
   }
+
   Promise.all([
     readFile(salesFile.files[0]),
     readFile(stockFile.files[0]),
     fetch("data/sizes.xlsx")
-      .then(r=>r.arrayBuffer())
+      .then(r=>r.ok ? r.arrayBuffer() : Promise.reject())
       .then(b=>XLSX.read(b,{type:"array"}))
       .then(w=>XLSX.utils.sheet_to_json(w.Sheets[w.SheetNames[0]]))
+      .catch(()=>[])   // ✅ IMPORTANT FIX
   ]).then(([sales,stock,sizeMaster])=>{
     calculate(sales,stock,sizeMaster);
   });
@@ -125,26 +127,21 @@ function calculate(sales,stock,sizeMaster){
     styleMap[style].stock+=+r["Available Stock"];
   });
 
-  /* ================= SIZE-WISE ANALYSIS SUMMARY (ENHANCED) ================= */
+  /* SIZE SUMMARY */
   const totalSold = Object.values(sizeMap).reduce((a,b)=>a+b.sold,0);
 
-  const categoryTotals = {};
+  const categoryTotals={};
   SIZE_ORDER.forEach(s=>{
-    const cat = CATEGORY(s);
-    categoryTotals[cat] = (categoryTotals[cat] || 0) + (sizeMap[s]?.sold || 0);
+    const cat=CATEGORY(s);
+    categoryTotals[cat]=(categoryTotals[cat]||0)+(sizeMap[s]?.sold||0);
   });
 
-  const categoryPrinted = {};
-
+  const printed={};
   SIZE_ORDER.forEach(s=>{
-    const d = sizeMap[s] || {sold:0,stock:0};
-    const cat = CATEGORY(s);
-
-    const categoryShare = categoryPrinted[cat]
-      ? ""
-      : (totalSold ? ((categoryTotals[cat]/totalSold)*100).toFixed(1)+"%" : "0%");
-
-    categoryPrinted[cat] = true;
+    const d=sizeMap[s]||{sold:0,stock:0};
+    const cat=CATEGORY(s);
+    const catShare=printed[cat]?"":(totalSold?((categoryTotals[cat]/totalSold)*100).toFixed(1)+"%":"0%");
+    printed[cat]=true;
 
     sizeSummaryBody.insertAdjacentHTML("beforeend",`
       <tr>
@@ -152,13 +149,12 @@ function calculate(sales,stock,sizeMaster){
         <td>${cat}</td>
         <td>${d.sold}</td>
         <td>${totalSold?((d.sold/totalSold)*100).toFixed(1):"0"}%</td>
-        <td>${categoryShare}</td>
+        <td>${catShare}</td>
         <td>${d.stock}</td>
-      </tr>
-    `);
+      </tr>`);
   });
 
-  /* ================= DEMAND + OVERSTOCK + SIZE CURVE (UNCHANGED) ================= */
+  /* DEMAND / OVERSTOCK / SIZE CURVE (UNCHANGED) */
   Object.entries(styleMap).forEach(([style,d])=>{
     if(d.sold===0) return;
 
@@ -166,13 +162,11 @@ function calculate(sales,stock,sizeMaster){
     const sc=d.stock/drr;
     const demand=sc<+targetSC.value?Math.ceil((+targetSC.value-sc)*drr):0;
 
-    /* SC BAND */
     if(sc<30){bandCount.b0++;bandUnits.b0+=d.sold;}
     else if(sc<60){bandCount.b30++;bandUnits.b30+=d.sold;}
     else if(sc<120){bandCount.b60++;bandUnits.b60+=d.sold;}
     else {bandCount.b120++;bandUnits.b120+=d.sold;}
 
-    /* DEMAND */
     if(demand>0){
       demandBody.insertAdjacentHTML("beforeend",`
         <tr data-style="${style.toLowerCase()}">
@@ -181,7 +175,6 @@ function calculate(sales,stock,sizeMaster){
         </tr>`);
     }
 
-    /* OVERSTOCK */
     if(sc>120){
       overstockBody.insertAdjacentHTML("beforeend",`
         <tr data-style="${style.toLowerCase()}">
@@ -190,7 +183,6 @@ function calculate(sales,stock,sizeMaster){
         </tr>`);
     }
 
-    /* SIZE CURVE */
     if(demand>0){
       const row={};
       SIZE_ORDER.forEach(s=>row[s]=0);
@@ -205,13 +197,12 @@ function calculate(sales,stock,sizeMaster){
     }
   });
 
-  /* UPDATE BAND TABLE */
   b0.innerText=bandCount.b0; b0u.innerText=bandUnits.b0;
   b30.innerText=bandCount.b30; b30u.innerText=bandUnits.b30;
   b60.innerText=bandCount.b60; b60u.innerText=bandUnits.b60;
   b120.innerText=bandCount.b120; b120u.innerText=bandUnits.b120;
 
-  /* BROKEN SIZE (UNCHANGED) */
+  /* BROKEN SIZE */
   Object.entries(styleMap)
     .filter(([s,d])=>sizeRef[s] && d.sold>=30)
     .map(([s,d])=>{
@@ -226,7 +217,7 @@ function calculate(sales,stock,sizeMaster){
       brokenBody.insertAdjacentHTML("beforeend",`
         <tr>
           <td>${x.s}</td>
-          <td>${sizeRef[x.s]}</td>
+          <td>${sizeRef[x.s]||""}</td>
           <td>${x.broken.length}</td>
           <td>${x.broken.join(", ")}</td>
           <td>${x.d.sold}</td>

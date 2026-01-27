@@ -20,13 +20,7 @@ const clearSearch=document.getElementById("clearSearch");
 const demandBody=document.querySelector("#demandTable tbody");
 const overstockBody=document.querySelector("#overstockTable tbody");
 const sizeCurveBody=document.querySelector("#sizeCurveTable tbody");
-
-const normalSales=document.getElementById("normalSales");
-const plus1Sales=document.getElementById("plus1Sales");
-const plus2Sales=document.getElementById("plus2Sales");
-const normalPct=document.getElementById("normalPct");
-const plus1Pct=document.getElementById("plus1Pct");
-const plus2Pct=document.getElementById("plus2Pct");
+const sizeSummaryBody=document.querySelector("#sizeSummaryTable tbody");
 
 generateBtn.onclick=generate;
 exportBtn.onclick=exportExcel;
@@ -34,10 +28,7 @@ exportBtn.onclick=exportExcel;
 expandAllBtn.onclick=()=>toggleAll(true);
 collapseAllBtn.onclick=()=>toggleAll(false);
 
-clearSearch.onclick=()=>{
-  search.value="";
-  filter("");
-};
+clearSearch.onclick=()=>{ search.value=""; filter(""); };
 
 document.querySelectorAll(".tab-btn").forEach(b=>{
   b.onclick=()=>{
@@ -87,11 +78,13 @@ function calculate(sales,stock){
   demandBody.innerHTML="";
   overstockBody.innerHTML="";
   sizeCurveBody.innerHTML="";
+  sizeSummaryBody.innerHTML="";
 
   let b0=0,b30=0,b60=0,b120=0;
-  let n=0,p1=0,p2=0;
+  let b0u=0,b30u=0,b60u=0,b120u=0;
 
   const map={};
+  const sizeAgg={};
   const sd=+salesDays.value;
   const target=+targetSC.value;
 
@@ -100,9 +93,9 @@ function calculate(sales,stock){
     map[style]??={sizes:{}};
     map[style].sizes[size]??={sales:0,stock:0};
     map[style].sizes[size].sales+=+r.Quantity;
-    if(NORMAL.has(size))n+=+r.Quantity;
-    if(PLUS1.has(size))p1+=+r.Quantity;
-    if(PLUS2.has(size))p2+=+r.Quantity;
+
+    sizeAgg[size]??={sold:0,stock:0};
+    sizeAgg[size].sold+=+r.Quantity;
   });
 
   stock.forEach(r=>{
@@ -110,10 +103,12 @@ function calculate(sales,stock){
     map[style]??={sizes:{}};
     map[style].sizes[size]??={sales:0,stock:0};
     map[style].sizes[size].stock+=+r["Available Stock"];
+
+    sizeAgg[size]??={sold:0,stock:0};
+    sizeAgg[size].stock+=+r["Available Stock"];
   });
 
-  let demandRows=[];
-  let overstockRows=[];
+  let demandRows=[], overstockRows=[];
 
   Object.entries(map).forEach(([style,data])=>{
     let ts=0,tk=0;
@@ -124,40 +119,13 @@ function calculate(sales,stock){
     const sc=tk/drr;
     const demand=sc<target?Math.ceil((target-sc)*drr):0;
 
-    if(sc<30)b0++; else if(sc<60)b30++; else if(sc<120)b60++; else b120++;
+    if(sc<30){b0++;b0u+=ts;}
+    else if(sc<60){b30++;b30u+=ts;}
+    else if(sc<120){b60++;b60u+=ts;}
+    else {b120++;b120u+=ts;}
 
-    /* -------- DEMAND COLOR LOGIC -------- */
-    let dClass="", dRemark="";
-
-    if(ts < 50){
-      dRemark="Low Sale Units";
-    } else {
-      if(drr>20 && sc<20){
-        dClass="green"; dRemark="High Demand";
-      } else if(drr>10 && drr<20 && sc<30 && sc>10){
-        dClass="amber"; dRemark="Mid Demand";
-      } else if(drr<10 && sc<10){
-        dClass="red"; dRemark="Low Demand";
-      }
-    }
-
-    /* -------- OVERSTOCK COLOR LOGIC -------- */
-    let oClass="", oRemark="";
-
-    if(ts < 50 && sc > 90){
-      oClass="red"; oRemark="High Risk";
-    } else {
-      if(drr>30){
-        oClass="green"; oRemark="Low Risk";
-      } else if(drr<30 && drr>10){
-        oClass="amber"; oRemark="Mid Risk";
-      } else if(drr<10){
-        oClass="red"; oRemark="High Risk";
-      }
-    }
-
-    if(demand>0) demandRows.push({style,data,ts,tk,drr,sc,demand,dClass,dRemark});
-    if(sc>120) overstockRows.push({style,data,ts,tk,drr,sc,oClass,oRemark});
+    if(demand>0) demandRows.push({style,data,ts,tk,drr,sc,demand});
+    if(sc>120) overstockRows.push({style,data,ts,tk,drr,sc});
   });
 
   demandRows.sort((a,b)=>b.demand-a.demand);
@@ -169,14 +137,44 @@ function calculate(sales,stock){
   document.getElementById("b30").innerText=b30;
   document.getElementById("b60").innerText=b60;
   document.getElementById("b120").innerText=b120;
+  document.getElementById("b0u").innerText=b0u;
+  document.getElementById("b30u").innerText=b30u;
+  document.getElementById("b60u").innerText=b60u;
+  document.getElementById("b120u").innerText=b120u;
 
-  const total=n+p1+p2;
-  normalSales.innerText=n;
-  plus1Sales.innerText=p1;
-  plus2Sales.innerText=p2;
-  normalPct.innerText=total?((n/total)*100).toFixed(1)+"%":"0%";
-  plus1Pct.innerText=total?((p1/total)*100).toFixed(1)+"%":"0%";
-  plus2Pct.innerText=total?((p2/total)*100).toFixed(1)+"%":"0%";
+  /* SIZE-WISE ANALYSIS SUMMARY */
+  const totalSold=Object.values(sizeAgg).reduce((a,b)=>a+b.sold,0);
+  const catTotals={Normal:0,"Plus 1":0,"Plus 2":0,"Free Size":0};
+
+  SIZE_ORDER.forEach(s=>{
+    if(s==="FS")catTotals["Free Size"]+=sizeAgg[s]?.sold||0;
+    else if(NORMAL.has(s))catTotals["Normal"]+=sizeAgg[s]?.sold||0;
+    else if(PLUS1.has(s))catTotals["Plus 1"]+=sizeAgg[s]?.sold||0;
+    else if(PLUS2.has(s))catTotals["Plus 2"]+=sizeAgg[s]?.sold||0;
+  });
+
+  const printed={};
+  SIZE_ORDER.forEach(s=>{
+    const d=sizeAgg[s]||{sold:0,stock:0};
+    let cat="Free Size";
+    if(NORMAL.has(s))cat="Normal";
+    else if(PLUS1.has(s))cat="Plus 1";
+    else if(PLUS2.has(s))cat="Plus 2";
+
+    const catShare=printed[cat]?"":(totalSold?((catTotals[cat]/totalSold)*100).toFixed(1)+"%":"0%");
+    printed[cat]=true;
+
+    sizeSummaryBody.insertAdjacentHTML("beforeend",`
+      <tr>
+        <td>${s}</td>
+        <td>${cat}</td>
+        <td>${d.sold}</td>
+        <td>${totalSold?((d.sold/totalSold)*100).toFixed(1):"0"}%</td>
+        <td>${catShare}</td>
+        <td>${d.stock}</td>
+      </tr>
+    `);
+  });
 
   /* SIZE CURVE */
   demandRows.forEach(r=>{
@@ -185,7 +183,6 @@ function calculate(sales,stock){
     Object.entries(r.data.sizes).forEach(([z,v])=>{
       row[z]=Math.round((v.sales/r.ts)*r.demand);
     });
-
     sizeCurveBody.insertAdjacentHTML("beforeend",`
       <tr data-style="${r.style.toLowerCase()}">
         <td>${r.style}</td>
@@ -198,18 +195,15 @@ function calculate(sales,stock){
 function renderExpandable(rows,tbody,isDemand){
   rows.forEach(r=>{
     const key="k"+Math.random().toString(36).slice(2);
-    const cls=isDemand?r.dClass:r.oClass;
-    const remark=isDemand?r.dRemark:r.oRemark;
-
     tbody.insertAdjacentHTML("beforeend",`
-      <tr class="${cls}" data-style="${r.style.toLowerCase()}">
+      <tr data-style="${r.style.toLowerCase()}">
         <td class="expand" onclick="toggle('${key}',this)">+</td>
         <td>${r.style}</td>
         <td>${r.ts}</td>
         <td>${r.tk}</td>
         <td>${r.drr.toFixed(2)}</td>
         <td>${r.sc.toFixed(1)}</td>
-        ${isDemand?`<td>${r.demand}</td><td>${remark||""}</td>`:""}
+        ${isDemand?`<td>${r.demand}</td><td></td>`:""}
       </tr>`);
 
     Object.entries(r.data.sizes)
@@ -253,7 +247,7 @@ function exportExcel(){
   XLSX.utils.book_append_sheet(wb,XLSX.utils.table_to_sheet(document.getElementById("demandTable")),"Demand");
   XLSX.utils.book_append_sheet(wb,XLSX.utils.table_to_sheet(document.getElementById("overstockTable")),"Overstock");
   XLSX.utils.book_append_sheet(wb,XLSX.utils.table_to_sheet(document.getElementById("sizeCurveTable")),"Size_Curve");
-  XLSX.writeFile(wb,"Demand_Planner_v1_6.xlsx");
+  XLSX.writeFile(wb,"Demand_Planner_v1_7.xlsx");
 }
 
 });

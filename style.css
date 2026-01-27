@@ -187,24 +187,3 @@ th {
 .red {
   background-color: #f8d7da !important;
 }
-
-/* ===============================
-   BRANDING (APPENDED)
-================================ */
-.brand-header {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  margin-bottom: 12px;
-}
-
-.brand-header img {
-  height: 42px;
-  width: auto;
-}
-
-.footer {
-  text-align: center;
-  font-weight: bold;
-  margin-top: 24px;
-}

@@ -2,19 +2,14 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Demand Planner – v1.8.2 (LOCKED)</title>
+  <title>Demand Planner – v1.7 (LOCKED)</title>
   <link rel="stylesheet" href="style.css" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
 
-<!-- BRAND HEADER -->
-<header class="brand-header">
-  <img src="data/logo.png" class="logo" alt="Rajnandini Fashion">
-  <h1>Demand Planning Tool</h1>
-</header>
-
 <div class="container">
+  <h1>Demand Planning Tool</h1>
 
   <!-- CONTROL BAR -->
   <div class="card control-bar">
@@ -92,7 +87,6 @@
     <button class="tab-btn active" data-tab="demand">Demand</button>
     <button class="tab-btn" data-tab="overstock">Overstock</button>
     <button class="tab-btn" data-tab="sizecurve">Size Curve</button>
-    <button class="tab-btn" data-tab="broken">Broken Size</button>
   </div>
 
   <!-- DEMAND -->
@@ -101,13 +95,8 @@
       <thead>
         <tr>
           <th></th>
-          <th>Style / SKU</th>
-          <th>Sales</th>
-          <th>Stock</th>
-          <th>DRR</th>
-          <th>SC</th>
-          <th>Demand</th>
-          <th>Remarks</th>
+          <th>Style / SKU</th><th>Sales</th><th>Stock</th>
+          <th>DRR</th><th>SC</th><th>Demand</th><th>Remarks</th>
         </tr>
       </thead>
       <tbody></tbody>
@@ -120,11 +109,8 @@
       <thead>
         <tr>
           <th></th>
-          <th>Style / SKU</th>
-          <th>Sales</th>
-          <th>Stock</th>
-          <th>DRR</th>
-          <th>SC</th>
+          <th>Style / SKU</th><th>Sales</th><th>Stock</th>
+          <th>DRR</th><th>SC</th>
         </tr>
       </thead>
       <tbody></tbody>
@@ -136,7 +122,8 @@
     <div class="help-box">
       <b>How to read this</b><br>
       • Style Demand = units needed to reach target SC<br>
-      • Allocation based on real size sales mix
+      • Allocation based on real size sales mix<br>
+      • “FS” means Free Size
     </div>
 
     <table id="sizeCurveTable">
@@ -156,28 +143,7 @@
     </table>
   </div>
 
-  <!-- BROKEN SIZE -->
-  <div id="brokenTab" class="tab-content">
-    <table id="brokenTable">
-      <thead>
-        <tr>
-          <th>Style ID</th>
-          <th>Total Sizes</th>
-          <th>Broken Sizes</th>
-          <th>Broken Size Names</th>
-          <th>Total Units Sold</th>
-          <th>Total Stock</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
-
 </div>
-
-<footer class="footer">
-  © Copyright – Rajnandini Fashion India Limited
-</footer>
 
 <script src="app.js"></script>
 </body>

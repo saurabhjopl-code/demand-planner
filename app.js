@@ -125,21 +125,40 @@ function calculate(sales,stock,sizeMaster){
     styleMap[style].stock+=+r["Available Stock"];
   });
 
-  /* SIZE SUMMARY */
-  const totalSold=Object.values(sizeMap).reduce((a,b)=>a+b.sold,0);
+  /* ================= SIZE-WISE ANALYSIS SUMMARY (ENHANCED) ================= */
+  const totalSold = Object.values(sizeMap).reduce((a,b)=>a+b.sold,0);
+
+  const categoryTotals = {};
   SIZE_ORDER.forEach(s=>{
-    const d=sizeMap[s]||{sold:0,stock:0};
+    const cat = CATEGORY(s);
+    categoryTotals[cat] = (categoryTotals[cat] || 0) + (sizeMap[s]?.sold || 0);
+  });
+
+  const categoryPrinted = {};
+
+  SIZE_ORDER.forEach(s=>{
+    const d = sizeMap[s] || {sold:0,stock:0};
+    const cat = CATEGORY(s);
+
+    const categoryShare = categoryPrinted[cat]
+      ? ""
+      : (totalSold ? ((categoryTotals[cat]/totalSold)*100).toFixed(1)+"%" : "0%");
+
+    categoryPrinted[cat] = true;
+
     sizeSummaryBody.insertAdjacentHTML("beforeend",`
       <tr>
         <td>${s}</td>
-        <td>${CATEGORY(s)}</td>
+        <td>${cat}</td>
         <td>${d.sold}</td>
         <td>${totalSold?((d.sold/totalSold)*100).toFixed(1):"0"}%</td>
+        <td>${categoryShare}</td>
         <td>${d.stock}</td>
-      </tr>`);
+      </tr>
+    `);
   });
 
-  /* DEMAND + OVERSTOCK + SIZE CURVE */
+  /* ================= DEMAND + OVERSTOCK + SIZE CURVE (UNCHANGED) ================= */
   Object.entries(styleMap).forEach(([style,d])=>{
     if(d.sold===0) return;
 
@@ -192,7 +211,7 @@ function calculate(sales,stock,sizeMaster){
   b60.innerText=bandCount.b60; b60u.innerText=bandUnits.b60;
   b120.innerText=bandCount.b120; b120u.innerText=bandUnits.b120;
 
-  /* BROKEN SIZE */
+  /* BROKEN SIZE (UNCHANGED) */
   Object.entries(styleMap)
     .filter(([s,d])=>sizeRef[s] && d.sold>=30)
     .map(([s,d])=>{

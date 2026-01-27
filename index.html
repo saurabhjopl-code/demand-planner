@@ -2,21 +2,14 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Demand Planner – v1.8 (LOCKED)</title>
+  <title>Demand Planner – v1.7 (LOCKED)</title>
   <link rel="stylesheet" href="style.css" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
 
-<header class="brand-header">
-  <div class="brand-left">
-    <!-- Optional logo -->
-    <!-- <img src="logo.png" class="logo" /> -->
-    <h1>Demand Planning Tool</h1>
-  </div>
-</header>
-
 <div class="container">
+  <h1>Demand Planning Tool</h1>
 
   <!-- CONTROL BAR -->
   <div class="card control-bar">
@@ -51,6 +44,7 @@
   <!-- SUMMARY ROW -->
   <div class="summary-row">
 
+    <!-- SC BAND SUMMARY -->
     <div class="card summary-card">
       <h3>SC Band Summary</h3>
       <table>
@@ -62,6 +56,7 @@
       </table>
     </div>
 
+    <!-- SIZE-WISE ANALYSIS SUMMARY -->
     <div class="card summary-card">
       <h3>Size-wise Analysis Summary</h3>
       <table id="sizeSummaryTable">
@@ -92,7 +87,6 @@
     <button class="tab-btn active" data-tab="demand">Demand</button>
     <button class="tab-btn" data-tab="overstock">Overstock</button>
     <button class="tab-btn" data-tab="sizecurve">Size Curve</button>
-    <button class="tab-btn" data-tab="broken">Broken Size</button>
   </div>
 
   <!-- DEMAND -->
@@ -100,7 +94,8 @@
     <table id="demandTable">
       <thead>
         <tr>
-          <th></th><th>Style / SKU</th><th>Sales</th><th>Stock</th>
+          <th></th>
+          <th>Style / SKU</th><th>Sales</th><th>Stock</th>
           <th>DRR</th><th>SC</th><th>Demand</th><th>Remarks</th>
         </tr>
       </thead>
@@ -113,7 +108,8 @@
     <table id="overstockTable">
       <thead>
         <tr>
-          <th></th><th>Style / SKU</th><th>Sales</th><th>Stock</th>
+          <th></th>
+          <th>Style / SKU</th><th>Sales</th><th>Stock</th>
           <th>DRR</th><th>SC</th>
         </tr>
       </thead>
@@ -123,27 +119,24 @@
 
   <!-- SIZE CURVE -->
   <div id="sizecurveTab" class="tab-content">
+    <div class="help-box">
+      <b>How to read this</b><br>
+      • Style Demand = units needed to reach target SC<br>
+      • Allocation based on real size sales mix<br>
+      • “FS” means Free Size
+    </div>
+
     <table id="sizeCurveTable">
       <thead>
         <tr>
-          <th>Style</th><th>Style Demand</th>
-          <th colspan="14">Recommended Buy</th>
+          <th rowspan="2">Style</th>
+          <th rowspan="2">Style Demand</th>
+          <th colspan="14">Recommended Buy (Qty)</th>
         </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
-
-  <!-- BROKEN SIZE -->
-  <div id="brokenTab" class="tab-content">
-    <table id="brokenTable">
-      <thead>
         <tr>
-          <th>Style ID</th>
-          <th>Total Sizes</th>
-          <th>Broken Sizes</th>
-          <th>Total Units Sold</th>
-          <th>Total Stock</th>
+          <th>FS</th><th>S</th><th>M</th><th>L</th><th>XL</th><th>XXL</th>
+          <th>3XL</th><th>4XL</th><th>5XL</th><th>6XL</th>
+          <th>7XL</th><th>8XL</th><th>9XL</th><th>10XL</th>
         </tr>
       </thead>
       <tbody></tbody>
@@ -151,10 +144,6 @@
   </div>
 
 </div>
-
-<footer class="footer">
-  © Copyright – Rajnandini Fashion India Limited
-</footer>
 
 <script src="app.js"></script>
 </body>

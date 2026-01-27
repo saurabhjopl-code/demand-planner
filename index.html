@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Demand Planner – v1.6 (LOCKED)</title>
+  <title>Demand Planner – v1.7 (LOCKED)</title>
   <link rel="stylesheet" href="style.css" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
@@ -41,30 +41,39 @@
     </div>
   </div>
 
-  <!-- STATIC SUMMARY ROW -->
+  <!-- SUMMARY ROW -->
   <div class="summary-row">
+
     <!-- SC BAND SUMMARY -->
     <div class="card summary-card">
       <h3>SC Band Summary</h3>
       <table>
-        <tr><th>Band</th><th>Styles</th></tr>
-        <tr><td>0–30</td><td id="b0">0</td></tr>
-        <tr><td>30–60</td><td id="b30">0</td></tr>
-        <tr><td>60–120</td><td id="b60">0</td></tr>
-        <tr><td>120+</td><td id="b120">0</td></tr>
+        <tr><th>Band</th><th>Styles</th><th>Total Units Sold</th></tr>
+        <tr><td>0–30</td><td id="b0">0</td><td id="b0u">0</td></tr>
+        <tr><td>30–60</td><td id="b30">0</td><td id="b30u">0</td></tr>
+        <tr><td>60–120</td><td id="b60">0</td><td id="b60u">0</td></tr>
+        <tr><td>120+</td><td id="b120">0</td><td id="b120u">0</td></tr>
       </table>
     </div>
 
-    <!-- SIZE ANALYSIS (STATIC, NO TAB) -->
+    <!-- SIZE-WISE ANALYSIS SUMMARY -->
     <div class="card summary-card">
-      <h3>Size Analysis</h3>
-      <table>
-        <tr><th>Category</th><th>Units</th><th>% Share</th></tr>
-        <tr><td>Normal (S–XXL)</td><td id="normalSales">0</td><td id="normalPct">0%</td></tr>
-        <tr><td>Plus1 (3XL–6XL)</td><td id="plus1Sales">0</td><td id="plus1Pct">0%</td></tr>
-        <tr><td>Plus2 (7XL–10XL)</td><td id="plus2Sales">0</td><td id="plus2Pct">0%</td></tr>
+      <h3>Size-wise Analysis Summary</h3>
+      <table id="sizeSummaryTable">
+        <thead>
+          <tr>
+            <th>Size</th>
+            <th>Category</th>
+            <th>Units Sold</th>
+            <th>% Share</th>
+            <th>Category % Share</th>
+            <th>Units in Stock</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
       </table>
     </div>
+
   </div>
 
   <!-- SEARCH -->
@@ -122,7 +131,7 @@
         <tr>
           <th rowspan="2">Style</th>
           <th rowspan="2">Style Demand</th>
-          <th colspan="12">Recommended Buy (Qty)</th>
+          <th colspan="14">Recommended Buy (Qty)</th>
         </tr>
         <tr>
           <th>FS</th><th>S</th><th>M</th><th>L</th><th>XL</th><th>XXL</th>

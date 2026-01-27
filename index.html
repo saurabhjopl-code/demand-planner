@@ -2,14 +2,14 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Demand Planner – v1.8 (LOCKED)</title>
+  <title>Demand Planner – v1.8.1 (LOCKED)</title>
   <link rel="stylesheet" href="style.css" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
 
 <header class="brand-header">
-  <h1>Demand Planning Tool</h1>
+  <img src="data/logo.png" class="logo" alt="Rajnandini Fashion">
 </header>
 
 <div class="container">
@@ -42,39 +42,6 @@
       <button id="collapseAllBtn">Collapse All</button>
       <button id="exportBtn">Export Excel</button>
     </div>
-  </div>
-
-  <!-- SUMMARY ROW -->
-  <div class="summary-row">
-
-    <div class="card summary-card">
-      <h3>SC Band Summary</h3>
-      <table>
-        <tr><th>Band</th><th>Styles</th><th>Total Units Sold</th></tr>
-        <tr><td>0–30</td><td id="b0">0</td><td id="b0u">0</td></tr>
-        <tr><td>30–60</td><td id="b30">0</td><td id="b30u">0</td></tr>
-        <tr><td>60–120</td><td id="b60">0</td><td id="b60u">0</td></tr>
-        <tr><td>120+</td><td id="b120">0</td><td id="b120u">0</td></tr>
-      </table>
-    </div>
-
-    <div class="card summary-card">
-      <h3>Size-wise Analysis Summary</h3>
-      <table id="sizeSummaryTable">
-        <thead>
-          <tr>
-            <th>Size</th>
-            <th>Category</th>
-            <th>Units Sold</th>
-            <th>% Share</th>
-            <th>Category % Share</th>
-            <th>Units in Stock</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
-
   </div>
 
   <!-- SEARCH -->
@@ -134,12 +101,18 @@
       • Style Demand = units needed to reach target SC<br>
       • Allocation based on real size sales mix
     </div>
+
     <table id="sizeCurveTable">
       <thead>
         <tr>
-          <th>Style</th>
-          <th>Style Demand</th>
-          <th colspan="14">Recommended Buy</th>
+          <th rowspan="2">Style</th>
+          <th rowspan="2">Style Demand</th>
+          <th colspan="14">Recommended Buy (Qty)</th>
+        </tr>
+        <tr>
+          <th>FS</th><th>S</th><th>M</th><th>L</th><th>XL</th><th>XXL</th>
+          <th>3XL</th><th>4XL</th><th>5XL</th><th>6XL</th>
+          <th>7XL</th><th>8XL</th><th>9XL</th><th>10XL</th>
         </tr>
       </thead>
       <tbody></tbody>
@@ -154,6 +127,7 @@
           <th>Style ID</th>
           <th>Total Sizes</th>
           <th>Broken Sizes</th>
+          <th>Broken Size Names</th>
           <th>Total Units Sold</th>
           <th>Total Stock</th>
         </tr>

@@ -177,13 +177,34 @@ th {
    COLOR CODES
 ================================ */
 .green {
-  background-color: #d4edda !important; /* High / Low Risk */
+  background-color: #d4edda !important;
 }
 
 .amber {
-  background-color: #fff3cd !important; /* Mid */
+  background-color: #fff3cd !important;
 }
 
 .red {
-  background-color: #f8d7da !important; /* Low / High Risk */
+  background-color: #f8d7da !important;
+}
+
+/* ===============================
+   BRANDING (APPENDED)
+================================ */
+.brand-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+.brand-header img {
+  height: 42px;
+  width: auto;
+}
+
+.footer {
+  text-align: center;
+  font-weight: bold;
+  margin-top: 24px;
 }
